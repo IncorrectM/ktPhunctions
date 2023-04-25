@@ -1,5 +1,6 @@
 package tech.zzhdev.phunctions
 
+import tech.zzhdev.phunctions.expression.SymbolExpression
 import tech.zzhdev.phunctions.parser.Parser
 
 fun main(args: Array<String>) {
@@ -12,7 +13,6 @@ fun main(args: Array<String>) {
     """.trimIndent()
 
     val parser = Parser(source)
-    while (parser.hasNext()) {
-        println(parser.nextToken())
-    }
+    val expression = parser.parse()
+    println(expression.getOrNull())
 }

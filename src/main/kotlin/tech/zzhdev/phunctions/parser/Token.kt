@@ -1,6 +1,6 @@
 package tech.zzhdev.phunctions.parser
 
-interface Token{}
+interface Token { }
 
 data class BasicToken(val symbol: String): Token { }
 object OperatorTokens {
