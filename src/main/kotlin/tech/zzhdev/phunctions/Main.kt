@@ -9,10 +9,12 @@ fun main(args: Array<String>) {
             (+ 1 1)
             (* 2 2)
             4
+            10
         )
     """.trimIndent()
 
     val parser = Parser(source)
     val expression = parser.parse()
     println(expression.getOrNull())
+    println(expression.getOrNull()?.eval())
 }
