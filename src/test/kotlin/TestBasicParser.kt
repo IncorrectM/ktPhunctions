@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.Test
 import tech.zzhdev.phunctions.expression.ConstantIntExpression
+import tech.zzhdev.phunctions.expression.EvaluationResult
 import tech.zzhdev.phunctions.expression.OperatorExpression
 import tech.zzhdev.phunctions.expression.SymbolExpression
 import tech.zzhdev.phunctions.parser.IntToken
@@ -81,5 +82,26 @@ class TestBasicParser {
             ConstantIntExpression(4),
         ))
         assertEquals(expected.toString(), expression.toString())
+    }
+
+    @Test
+    fun testExpressionEvaluation() {
+        val source = """
+            (*
+                (+ 1 1)
+                (* 2 2)
+                4
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expressionResult = parser.parse()
+        assert(expressionResult.isSuccess)
+
+        val expression = expressionResult.getOrNull()!!
+        assert(expression.eval().isSuccess)
+        assertEquals(32, expression.eval().getOrNull()!!)
     }
 }
