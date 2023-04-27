@@ -11,7 +11,18 @@ repositories {
 }
 
 dependencies {
+    // https://mvnrepository.com/artifact/org.jline/jline
+    implementation("org.jline:jline:3.23.0")
+
     testImplementation(kotlin("test"))
+}
+
+tasks {
+    withType<Jar> {
+        manifest {
+            attributes["Main-Class"] = "tech.zzhdev.phunctions.MainKt"
+        }
+    }
 }
 
 tasks.test {
@@ -23,5 +34,5 @@ kotlin {
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("tech.zzhdev.phunctions.MainKt")
 }
