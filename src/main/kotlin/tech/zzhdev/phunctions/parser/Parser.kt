@@ -3,10 +3,7 @@ package tech.zzhdev.phunctions.parser
 import tech.zzhdev.phunctions.exception.EndOfSourceException
 import tech.zzhdev.phunctions.exception.NoSuchOperatorException
 import tech.zzhdev.phunctions.exception.SyntaxErrorException
-import tech.zzhdev.phunctions.expression.ConstantIntExpression
-import tech.zzhdev.phunctions.expression.Expression
-import tech.zzhdev.phunctions.expression.OperatorExpression
-import tech.zzhdev.phunctions.expression.SymbolExpression
+import tech.zzhdev.phunctions.expression.*
 
 class Parser(private val source: String) {
     private var pos: Int = 0
@@ -62,8 +59,13 @@ class Parser(private val source: String) {
 
         val opr = OperatorTokens.getOperatorToken(builder.toString())
         return if (opr == null) {
-            // currently we do not support identifier
-            Result.failure(NoSuchOperatorException(pos, builder.toString()))
+            val identifier = builder.toString()
+            // identifiers starts with :
+            return if (identifier.startsWith(":")) {
+                Result.success(IdentifierToken(identifier.removePrefix(":")))
+            } else {
+                Result.failure(NoSuchOperatorException(pos, builder.toString()))
+            }
         } else {
             Result.success(opr)
         }
@@ -111,11 +113,19 @@ class Parser(private val source: String) {
         }
 
         // second token should be an operator
-        val secondToken = tokenResult.getOrNull()
-        if ((secondToken == null) || (secondToken !is BasicToken) || !OperatorTokens.isOperator(secondToken.symbol)) {
+        val oprToken = tokenResult.getOrNull()
+        if ((oprToken == null) || (oprToken !is BasicToken) || !OperatorTokens.isOperator(oprToken.symbol)) {
             return Result.failure(SyntaxErrorException("expect an operator"))
         }
-        symbolExpression.appendChild(OperatorExpression(secondToken.symbol))
+
+        if (oprToken == OperatorTokens.DEF) {
+            symbolExpression.appendChild(parseVariableDefineExpression().getOrElse {
+                return Result.failure(it)
+            })
+            return Result.success(symbolExpression)
+        }
+
+        symbolExpression.appendChild(OperatorExpression(oprToken.symbol))
 
         // parse remaining children
         tokenResult = nextToken()
@@ -134,13 +144,57 @@ class Parser(private val source: String) {
                     symbolExpression.appendChild(result.getOrNull()!!)
                 }
 
+                is IdentifierToken -> {
+                    symbolExpression.appendChild(IdentifierExpression(token.identifier))
+                }
+
                 else -> {
-                    return Result.failure(SyntaxErrorException("expecting an expression"))
+                    return Result.failure(SyntaxErrorException("expecting an expression, got $token"))
                 }
             }
             tokenResult = nextToken()
         }
 
         return Result.success(symbolExpression)
+    }
+
+    fun parseVariableDefineExpression(): Result<VariableDefineExpression> {
+        val idToken = nextToken().getOrElse {
+            return Result.failure(it)
+        }
+
+        if (idToken !is IdentifierToken) {
+            return Result.failure(SyntaxErrorException("expecting an identifier name"))
+        }
+
+        val expression = VariableDefineExpression()
+        expression.children.add(IdentifierExpression(idToken.identifier))
+
+        val valueToken = nextToken().getOrElse {
+            return Result.failure(it)
+        }
+
+        when (valueToken) {
+            OperatorTokens.LEFT_PARENT -> {
+                expression.children.add(parseSymbolExpression().getOrElse {
+                    return Result.failure(it)
+                })
+            }
+            is IntToken -> {
+                expression.children.add(ConstantIntExpression(valueToken.value))
+            }
+            else -> {
+                return Result.failure(SyntaxErrorException("expecting symbol expression or constant int"))
+            }
+        }
+
+        val endingToken = nextToken().getOrElse {
+            return Result.failure(it)
+        }
+        if (endingToken != OperatorTokens.RIGHT_PARENT) {
+            return Result.failure(SyntaxErrorException("expecting ')' to close expression"))
+        }
+
+        return Result.success(expression)
     }
 }

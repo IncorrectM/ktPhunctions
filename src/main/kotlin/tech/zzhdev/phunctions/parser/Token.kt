@@ -10,6 +10,8 @@ object OperatorTokens {
     val MINUS = BasicToken("-")
     val MULTIPLY = BasicToken("*")
     val DIVIDE = BasicToken("/")
+    val DEF = BasicToken("def")
+    val DO = BasicToken("do")
 
     private val operators = HashMap<String, BasicToken>()
     init {
@@ -19,6 +21,8 @@ object OperatorTokens {
         operators["-"] = MINUS
         operators["*"] = MULTIPLY
         operators["/"] = DIVIDE
+        operators["def"] = DEF
+        operators["do"] = DO
     }
     private val registeredOperators
         get() = operators.values

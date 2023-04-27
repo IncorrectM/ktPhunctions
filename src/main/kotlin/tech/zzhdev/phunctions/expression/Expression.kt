@@ -51,9 +51,25 @@ data class ConstantIntExpression(val value: Int): Expression {
 
 }
 
-class SymbolExpression(): Expression {
-    val children = ArrayList<Expression>()
+data class VariableDefineExpression(
+    val children: ArrayList<Expression> = ArrayList()
+): Expression {
+    override fun eval(): Result<EvaluationResult> {
+        // TODO: Register variable into environment
+        return Result.success(0)
+    }
+}
 
+data class IdentifierExpression(val id: String): Expression {
+    override fun eval(): Result<EvaluationResult> {
+        // TODO: Read data from Environment
+        return Result.success(100)
+    }
+}
+
+data class SymbolExpression(
+    val children: ArrayList<Expression> = ArrayList()
+): Expression {
     constructor(
         children: Array<Expression>
     ): this() {

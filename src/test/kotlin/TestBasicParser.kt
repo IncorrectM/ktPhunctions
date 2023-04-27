@@ -1,8 +1,5 @@
 import org.junit.jupiter.api.Test
-import tech.zzhdev.phunctions.expression.ConstantIntExpression
-import tech.zzhdev.phunctions.expression.EvaluationResult
-import tech.zzhdev.phunctions.expression.OperatorExpression
-import tech.zzhdev.phunctions.expression.SymbolExpression
+import tech.zzhdev.phunctions.expression.*
 import tech.zzhdev.phunctions.parser.*
 import kotlin.test.AfterTest
 import kotlin.test.assertContentEquals
@@ -162,7 +159,52 @@ class TestBasicParser {
             )),
             ConstantIntExpression(4),
         ))
-        assertEquals(expected.toString(), expression.toString())
+        assertEquals(expected, expression)
+    }
+
+    @Test
+    fun testDoAndDefExpression() {
+        val source = """
+            ( do
+                ( def
+                    :kto
+                    100
+                )
+                ( *
+                    ( + 1 1)
+                    4
+                    :kto
+                )
+             )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expressionResult = parser.parse()
+        assert(expressionResult.isSuccess)
+
+        val expression = expressionResult.getOrNull()!!
+        val expected = SymbolExpression(arrayOf(
+            OperatorExpression("do"),
+            SymbolExpression(arrayOf(
+                VariableDefineExpression(arrayListOf(
+                    IdentifierExpression("kto"),
+                    ConstantIntExpression(100),
+                )),
+            )),
+            SymbolExpression(arrayOf(
+                OperatorExpression("*"),
+                SymbolExpression(arrayOf(
+                    OperatorExpression("+"),
+                    ConstantIntExpression(1),
+                    ConstantIntExpression(1),
+                )),
+                ConstantIntExpression(4),
+                IdentifierExpression("kto"),
+            ))
+        ))
+        assertEquals(expected, expression)
     }
 
     @Test
