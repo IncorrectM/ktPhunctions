@@ -227,4 +227,31 @@ class TestBasicParser {
         assert(expression.eval().isSuccess)
         assertEquals(32, expression.eval().getOrNull()!!)
     }
+
+    @Test
+    fun testDoAnDefEvaluation() {
+        val source = """
+            ( do
+                ( def
+                    :kto
+                    200
+                )
+                ( *
+                    ( + 1 1)
+                    4
+                    :kto
+                )
+             )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expressionResult = parser.parse()
+        assert(expressionResult.isSuccess)
+
+        val expression = expressionResult.getOrNull()!!
+        assert(expression.eval().isSuccess)
+        assertEquals(1600, expression.eval().getOrNull()!!)
+    }
 }
