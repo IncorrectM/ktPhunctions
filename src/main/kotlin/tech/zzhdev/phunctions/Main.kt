@@ -1,5 +1,10 @@
 package tech.zzhdev.phunctions
 
+import org.jline.reader.EndOfFileException
+import org.jline.reader.LineReader
+import org.jline.reader.LineReaderBuilder
+import org.jline.reader.UserInterruptException
+import org.jline.terminal.TerminalBuilder
 import tech.zzhdev.phunctions.expression.Expression
 import tech.zzhdev.phunctions.expression.SymbolExpression
 import tech.zzhdev.phunctions.parser.Parser
@@ -8,22 +13,7 @@ import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     if (args.contains("repl")) {
-        val scanner = Scanner(System.`in`)
-        print(">")
-        var value = scanner.nextLine()
-        while (value.trim() != "q") {
-            val p = Parser(value)
-            val expr: Expression = p.parse().getOrElse {
-                println(it)
-                exitProcess(-1)
-            }
-            println(expr.eval().getOrElse {
-                println(it)
-                exitProcess(-1)
-            })
-            print(">")
-            value = scanner.next()
-        }
+        repl()
     } else {
         val source = """
         (*
@@ -38,5 +28,35 @@ fun main(args: Array<String>) {
         val expression = parser.parse()
         println(expression.getOrNull())
         println(expression.getOrNull()?.eval())
+    }
+}
+
+fun repl() {
+    val terminal = TerminalBuilder.builder()
+        .system(true)
+        .build()
+    val lineReader = LineReaderBuilder.builder()
+        .terminal(terminal)
+        .build()
+
+    val prompt = "phunction >>>"
+    while (true) {
+        try {
+            val line = lineReader.readLine(prompt)
+            val parser = Parser(line)
+            val expression = parser.parse().getOrElse {
+                throw it
+            }
+            println(expression.eval().getOrElse {
+                throw it
+            })
+        } catch (uie: UserInterruptException) {
+            // user quit
+        } catch (eof: EndOfFileException) {
+            println("\nBye~")
+            return
+        } catch (ex: Exception) {
+            println("<stdin>: $ex")
+        }
     }
 }
