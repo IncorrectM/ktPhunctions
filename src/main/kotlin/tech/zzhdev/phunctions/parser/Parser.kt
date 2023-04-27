@@ -104,7 +104,7 @@ class Parser(private val source: String) {
          }
      }
 
-    fun parseSymbolExpression(): Result<SymbolExpression> {
+    private fun parseSymbolExpression(): Result<SymbolExpression> {
         val symbolExpression = SymbolExpression()
 
         var tokenResult = nextToken()
@@ -130,8 +130,7 @@ class Parser(private val source: String) {
         // parse remaining children
         tokenResult = nextToken()
         while (tokenResult.isSuccess && tokenResult.getOrNull()!! != OperatorTokens.RIGHT_PARENT && hasNext()) {
-            val token = tokenResult.getOrNull()!!
-            when (token) {
+            when (val token = tokenResult.getOrNull()!!) {
                 is IntToken -> {
                     symbolExpression.appendChild(ConstantIntExpression(token.value))
                 }
@@ -158,7 +157,7 @@ class Parser(private val source: String) {
         return Result.success(symbolExpression)
     }
 
-    fun parseVariableDefineExpression(): Result<VariableDefineExpression> {
+    private fun parseVariableDefineExpression(): Result<VariableDefineExpression> {
         val idToken = nextToken().getOrElse {
             return Result.failure(it)
         }
