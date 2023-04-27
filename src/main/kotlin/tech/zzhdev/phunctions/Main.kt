@@ -15,19 +15,11 @@ fun main(args: Array<String>) {
     if (args.contains("repl")) {
         repl()
     } else {
-//        val source = """
-//        (*
-//            (+ 1 1)
-//            (* 2 2)
-//            4
-//            10
-//        )
-//    """.trimIndent()
         val source = """
             ( do
                 ( def
                     :kto
-                    100
+                    244
                 )
                 ( *
                     ( + 1 1)
@@ -40,7 +32,7 @@ fun main(args: Array<String>) {
         val parser = Parser(source)
         val expression = parser.parse()
         println(expression)
-//        println(expression.getOrNull()?.eval())
+        println(expression.getOrNull()?.eval())
     }
 }
 
