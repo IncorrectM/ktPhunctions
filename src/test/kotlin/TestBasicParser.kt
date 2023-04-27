@@ -3,10 +3,7 @@ import tech.zzhdev.phunctions.expression.ConstantIntExpression
 import tech.zzhdev.phunctions.expression.EvaluationResult
 import tech.zzhdev.phunctions.expression.OperatorExpression
 import tech.zzhdev.phunctions.expression.SymbolExpression
-import tech.zzhdev.phunctions.parser.IntToken
-import tech.zzhdev.phunctions.parser.OperatorTokens
-import tech.zzhdev.phunctions.parser.Parser
-import tech.zzhdev.phunctions.parser.Token
+import tech.zzhdev.phunctions.parser.*
 import kotlin.test.AfterTest
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -47,6 +44,90 @@ class TestBasicParser {
             OperatorTokens.RIGHT_PARENT,
             IntToken(4),
             OperatorTokens.RIGHT_PARENT
+        ), tokens.toArray())
+    }
+
+    @Test
+    fun testParsingWithIdentifier() {
+        val source = """
+            (*
+                (+ 1 1)
+                4
+                :kto
+                :banana
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val tokens = ArrayList<Token>()
+        while (parser.hasNext()) {
+            val result = parser.nextToken()
+            assert(result.isSuccess)
+            tokens.add(result.getOrNull()!!)
+        }
+
+        assertContentEquals(arrayOf(
+            OperatorTokens.LEFT_PARENT,
+            OperatorTokens.MULTIPLY,
+            OperatorTokens.LEFT_PARENT,
+            OperatorTokens.PLUS,
+            IntToken(1),
+            IntToken(1),
+            OperatorTokens.RIGHT_PARENT,
+            IntToken(4),
+            IdentifierToken("kto"),
+            IdentifierToken("banana"),
+            OperatorTokens.RIGHT_PARENT,
+        ), tokens.toArray())
+    }
+
+    @Test
+    fun testParsingDoAndDef() {
+        val source = """
+            ( do
+                ( def
+                    :kto
+                    100
+                )
+                ( *
+                    ( + 1 1)
+                    4
+                    :kto
+                )
+             )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val tokens = ArrayList<Token>()
+        while (parser.hasNext()) {
+            val result = parser.nextToken()
+            assert(result.isSuccess)
+            tokens.add(result.getOrNull()!!)
+        }
+
+        assertContentEquals(arrayOf(
+            OperatorTokens.LEFT_PARENT,
+                OperatorTokens.DO,
+                OperatorTokens.LEFT_PARENT,
+                    OperatorTokens.DEF,
+                    IdentifierToken("kto"),
+                    IntToken(100),
+                OperatorTokens.RIGHT_PARENT,
+                OperatorTokens.LEFT_PARENT,
+                    OperatorTokens.MULTIPLY,
+                    OperatorTokens.LEFT_PARENT,
+                        OperatorTokens.PLUS,
+                        IntToken(1),
+                        IntToken(1),
+                    OperatorTokens.RIGHT_PARENT,
+                    IntToken(4),
+                    IdentifierToken("kto"),
+                OperatorTokens.RIGHT_PARENT,
+            OperatorTokens.RIGHT_PARENT,
         ), tokens.toArray())
     }
 
