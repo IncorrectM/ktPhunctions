@@ -39,7 +39,7 @@ fun repl() {
         .terminal(terminal)
         .build()
 
-    val prompt = "phunction >>>"
+    val prompt = "phunction > "
     while (true) {
         try {
             val line = lineReader.readLine(prompt)
@@ -47,7 +47,7 @@ fun repl() {
             val expression = parser.parse().getOrElse {
                 throw it
             }
-            println(expression.eval().getOrElse {
+            println("\n>>> " + expression.eval().getOrElse {
                 throw it
             })
         } catch (uie: UserInterruptException) {
