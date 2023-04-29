@@ -64,7 +64,8 @@ data class VariableDefineExpression(
             return Result.failure(EvaluationErrorException("expecting identifier, got $name"))
         }
 
-        val idValue = when (val valueExpression = children[1]) {
+        val valueExpression = children[1]
+        val idValue = when (valueExpression) {
             is SymbolExpression -> valueExpression.eval().getOrElse {
                 return Result.failure(it)
             }
@@ -72,17 +73,19 @@ data class VariableDefineExpression(
             is ConstantIntExpression -> valueExpression.value
 
             else -> {
-                return Result.failure(EvaluationErrorException("expecting symbol expression of constant int"))
+                return Result.failure(EvaluationErrorException("expecting symbol expression or constant int"))
             }
         }
-        Environment.putVar(name.id, idValue)
+        Environment.putVar(name.id, valueExpression)
         return Result.success(idValue)
     }
 }
 
 data class IdentifierExpression(val id: String): Expression {
     override fun eval(): Result<EvaluationResult> {
-        val value = Environment.getVar(id) ?: return Result.failure(EvaluationErrorException("$id is not defined"))
+        val value = Environment.getVar(id).getOrElse {
+            return Result.failure(it)
+        }
         return Result.success(value)
     }
 }

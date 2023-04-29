@@ -1,11 +1,15 @@
 package tech.zzhdev.phunctions.expression
 
+import tech.zzhdev.phunctions.exception.EvaluationErrorException
+
 object Environment {
-    private val variables = HashMap<String, Int>()
+    private val variables = HashMap<String, Expression>()
 
-    fun getVar(id: String): Int? = variables[id]
+    // variables are evaluated during access
+    fun getVar(id: String): Result<EvaluationResult> = variables[id]?.eval() ?:
+        Result.failure(EvaluationErrorException("$id is no defined"))
 
-    fun putVar(id: String, value: Int) {
+    fun putVar(id: String, value: Expression) {
         variables[id] = value
     }
 }
