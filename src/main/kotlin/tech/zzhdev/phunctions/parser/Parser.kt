@@ -52,7 +52,7 @@ class Parser(private val source: String) {
 
         val builder = StringBuilder()
         // while nextChar is not null nor whitespace
-        while (nextChar?.isWhitespace() == false) {
+        while (nextChar?.isWhitespace() == false && nextChar != ')') {
             builder.append(nextChar)
             march()
         }
