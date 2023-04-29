@@ -10,6 +10,8 @@ class Parser(private val source: String) {
     private val nextChar
         get() = if (pos < source.length) source[pos] else null
 
+    private var lastToken: Token? = null
+
     private fun skipWhitespaces() {
         while (pos < source.length && source[pos].isWhitespace()) {
             pos++
@@ -37,6 +39,7 @@ class Parser(private val source: String) {
                 num = num * 10 + source[pos].digitToInt()
                 march()
             }
+            lastToken = IntToken(num)
             return Result.success(IntToken(num))
         }
 
@@ -46,6 +49,7 @@ class Parser(private val source: String) {
             val opr = OperatorTokens.getOperatorToken("" + firstChar)
             if (opr != null) {
                 march()
+                lastToken = opr
                 return Result.success(opr)
             }
         }
@@ -67,6 +71,7 @@ class Parser(private val source: String) {
                 Result.failure(NoSuchOperatorException(pos, builder.toString()))
             }
         } else {
+            lastToken = opr
             Result.success(opr)
         }
     }
@@ -99,7 +104,9 @@ class Parser(private val source: String) {
          val symbolExpressionResult = parseSymbolExpression()
          return if (symbolExpressionResult.isFailure) {
              Result.failure(symbolExpressionResult.exceptionOrNull()!!)
-         } else {
+         } else if (lastToken != OperatorTokens.RIGHT_PARENT) {
+             Result.failure(SyntaxErrorException("expression is not closed"))
+         }else {
              Result.success(symbolExpressionResult.getOrNull()!!)
          }
      }
@@ -122,6 +129,7 @@ class Parser(private val source: String) {
             symbolExpression.appendChild(parseVariableDefineExpression().getOrElse {
                 return Result.failure(it)
             })
+            // closing is checked inside parseVariableDefineExpression
             return Result.success(symbolExpression)
         }
 
@@ -154,6 +162,9 @@ class Parser(private val source: String) {
             tokenResult = nextToken()
         }
 
+        if (lastToken != OperatorTokens.RIGHT_PARENT) {
+            return Result.failure(SyntaxErrorException("expression is not closed"))
+        }
         return Result.success(symbolExpression)
     }
 
@@ -191,7 +202,7 @@ class Parser(private val source: String) {
             return Result.failure(it)
         }
         if (endingToken != OperatorTokens.RIGHT_PARENT) {
-            return Result.failure(SyntaxErrorException("expecting ')' to close expression"))
+            return Result.failure(SyntaxErrorException("expression is not closed"))
         }
 
         return Result.success(expression)
