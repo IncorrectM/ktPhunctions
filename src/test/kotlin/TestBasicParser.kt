@@ -254,4 +254,31 @@ class TestBasicParser {
         assert(expression.eval().isSuccess)
         assertEquals(1600, expression.eval().getOrNull()!!)
     }
+
+    @Test
+    fun testLazyEvaluation() {
+        val source = """
+            (do
+                (def 
+                    :a 
+                    (* 2 2 :b)
+                )
+                (def 
+                    :b 
+                    10
+                )
+                (* :a :b)
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expressionResult = parser.parse()
+        assert(expressionResult.isSuccess)
+
+        val expression = expressionResult.getOrNull()!!
+        assert(expression.eval().isSuccess)
+        assertEquals(400, expression.eval().getOrNull()!!)
+    }
 }
