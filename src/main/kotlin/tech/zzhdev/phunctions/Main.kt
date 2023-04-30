@@ -16,17 +16,22 @@ fun main(args: Array<String>) {
         repl()
     } else {
         val source = """
-        (*
-            (+ 1 1)
-            (* 2 2)
-            4
-            10
-        )
-    """.trimIndent()
+            ( do
+                ( def
+                    :kto
+                    244
+                )
+                ( *
+                    ( + 1 1)
+                    4
+                    :kto
+                )
+             )
+        """.trimIndent()
 
         val parser = Parser(source)
         val expression = parser.parse()
-        println(expression.getOrNull())
+        println(expression)
         println(expression.getOrNull()?.eval())
     }
 }
