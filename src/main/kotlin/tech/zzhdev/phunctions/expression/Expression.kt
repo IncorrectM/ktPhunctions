@@ -65,19 +65,19 @@ data class VariableDefineExpression(
         }
 
         val valueExpression = children[1]
-        val idValue = when (valueExpression) {
-            is SymbolExpression -> valueExpression.eval().getOrElse {
-                return Result.failure(it)
-            }
-
-            is ConstantIntExpression -> valueExpression.value
-
-            else -> {
-                return Result.failure(EvaluationErrorException("expecting symbol expression or constant int"))
-            }
-        }
+//        val idValue = when (valueExpression) {
+//            is SymbolExpression -> valueExpression.eval().getOrElse {
+//                return Result.failure(it)
+//            }
+//
+//            is ConstantIntExpression -> valueExpression.value
+//
+//            else -> {
+//                return Result.failure(EvaluationErrorException("expecting symbol expression or constant int"))
+//            }
+//        }
         Environment.putVar(name.id, valueExpression)
-        return Result.success(idValue)
+        return Result.success(0)
     }
 }
 
