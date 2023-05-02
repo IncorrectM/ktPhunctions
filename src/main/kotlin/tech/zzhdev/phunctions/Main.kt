@@ -12,7 +12,7 @@ import java.util.*
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
-    if (args.contains("repl")) {
+    if (args.map { it.lowercase() }.contains("repl")) {
         repl()
     } else {
         val source = """
