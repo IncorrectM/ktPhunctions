@@ -51,7 +51,8 @@ data class ConstantIntExpression(val value: Int): Expression {
 }
 
 data class VariableDefineExpression(
-    val children: ArrayList<Expression> = ArrayList()
+    val children: ArrayList<Expression> = ArrayList(),
+    var evalNow: Boolean = false
 ): Expression {
     override fun eval(): Result<EvaluationResult> {
         // define variable and put it into Environment
@@ -65,17 +66,21 @@ data class VariableDefineExpression(
         }
 
         val valueExpression = children[1]
-//        val idValue = when (valueExpression) {
-//            is SymbolExpression -> valueExpression.eval().getOrElse {
-//                return Result.failure(it)
-//            }
-//
-//            is ConstantIntExpression -> valueExpression.value
-//
-//            else -> {
-//                return Result.failure(EvaluationErrorException("expecting symbol expression or constant int"))
-//            }
-//        }
+        if (evalNow) {
+            val idValue = when (valueExpression) {
+                is SymbolExpression -> valueExpression.eval().getOrElse {
+                    return Result.failure(it)
+                }
+
+                is ConstantIntExpression -> valueExpression.value
+
+                else -> {
+                    return Result.failure(EvaluationErrorException("expecting symbol expression or constant int"))
+                }
+            }
+            Environment.putVar(name.id, ConstantIntExpression(idValue))
+            return Result.success(idValue)
+        }
         Environment.putVar(name.id, valueExpression)
         return Result.success(0)
     }

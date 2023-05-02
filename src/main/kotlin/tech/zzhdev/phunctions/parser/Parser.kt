@@ -198,7 +198,20 @@ class Parser(private val source: String) {
             }
         }
 
-        val endingToken = nextToken().getOrElse {
+        var endingToken: Token = nextToken().getOrElse {
+            return Result.failure(it)
+        }
+        when (endingToken) {
+            OperatorTokens.RIGHT_PARENT -> {
+                return Result.success(expression)
+            }
+
+            OperatorTokens.EXCLAMATION -> {
+                expression.evalNow = true
+            }
+        }
+
+        endingToken = nextToken().getOrElse {
             return Result.failure(it)
         }
         if (endingToken != OperatorTokens.RIGHT_PARENT) {

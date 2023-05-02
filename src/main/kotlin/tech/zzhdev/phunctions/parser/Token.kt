@@ -6,10 +6,14 @@ data class BasicToken(val symbol: String): Token { }
 object OperatorTokens {
     val LEFT_PARENT = BasicToken("(")
     val RIGHT_PARENT = BasicToken(")")
+
     val PLUS = BasicToken("+")
     val MINUS = BasicToken("-")
     val MULTIPLY = BasicToken("*")
     val DIVIDE = BasicToken("/")
+
+    val EXCLAMATION = BasicToken("!")
+
     val DEF = BasicToken("def")
     val DO = BasicToken("do")
 
@@ -17,10 +21,14 @@ object OperatorTokens {
     init {
         operators["("] = LEFT_PARENT
         operators[")"] = RIGHT_PARENT
+
         operators["+"] = PLUS
         operators["-"] = MINUS
         operators["*"] = MULTIPLY
         operators["/"] = DIVIDE
+
+        operators["!"] = EXCLAMATION
+
         operators["def"] = DEF
         operators["do"] = DO
     }

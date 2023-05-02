@@ -1,4 +1,5 @@
 import org.junit.jupiter.api.Test
+import tech.zzhdev.phunctions.exception.EvaluationErrorException
 import tech.zzhdev.phunctions.expression.*
 import tech.zzhdev.phunctions.parser.*
 import kotlin.test.AfterTest
@@ -76,6 +77,36 @@ class TestBasicParser {
             IntToken(4),
             IdentifierToken("kto"),
             IdentifierToken("banana"),
+            OperatorTokens.RIGHT_PARENT,
+        ), tokens.toArray())
+    }
+
+    @Test
+    fun testParsingExclamation() {
+        val source = """
+            (def
+                :a
+                1
+                !
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val tokens = ArrayList<Token>()
+        while (parser.hasNext()) {
+            val result = parser.nextToken()
+            assert(result.isSuccess)
+            tokens.add(result.getOrNull()!!)
+        }
+
+        assertContentEquals(arrayOf(
+            OperatorTokens.LEFT_PARENT,
+            OperatorTokens.DEF,
+            IdentifierToken("a"),
+            IntToken(1),
+            OperatorTokens.EXCLAMATION,
             OperatorTokens.RIGHT_PARENT,
         ), tokens.toArray())
     }
@@ -280,5 +311,47 @@ class TestBasicParser {
         val expression = expressionResult.getOrNull()!!
         assert(expression.eval().isSuccess)
         assertEquals(400, expression.eval().getOrNull()!!)
+    }
+
+    @Test
+    fun testInstantEvaluation() {
+        val source = """
+            (def 
+                :a 
+                (* 2 2)
+                !
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expressionResult = parser.parse()
+        assert(expressionResult.isSuccess)
+
+        val expression = expressionResult.getOrNull()!!
+        assert(expression.eval().isSuccess)
+        assertEquals(4, expression.eval().getOrNull()!!)
+    }
+
+    @Test
+    fun testInstantEvaluationFailed() {
+        val source = """
+            (def 
+                :a 
+                (* 2 :b)
+                !
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expressionResult = parser.parse()
+        assert(expressionResult.isSuccess)
+
+        val expression = expressionResult.getOrNull()!!
+        assert(expression.eval().isFailure)
+        assertEquals(EvaluationErrorException("b is no defined"), expression.eval().exceptionOrNull()!!)
     }
 }

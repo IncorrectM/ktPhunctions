@@ -20,6 +20,7 @@ fun main(args: Array<String>) {
                 ( def
                     :kto
                     244
+                    !
                 )
                 ( *
                     ( + 1 1)
@@ -32,7 +33,7 @@ fun main(args: Array<String>) {
         val parser = Parser(source)
         val expression = parser.parse()
         println(expression)
-        println(expression.getOrNull()?.eval())
+//        println(expression.getOrNull()?.eval())
     }
 }
 
