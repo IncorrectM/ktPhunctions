@@ -140,13 +140,15 @@ TODO: restricted bind - a variable that can not be rebind
 #### Function Define Expression
 
 ```Phunctions
-(def
-    :addTwo
-    (args :a :b)
-    (+ :a :b)
+(do
+    (def
+        :addTwo
+        (args :a :b)
+        (+ :a :b)
+    )
+    (+ (:addTwo 1 (:addTwo 1 (:addTwo 10 (:addTwo 100 (:addTwo 999 1))))) (:addTwo 1 1))
 )
 ```
 
-This example defines a function that adds two integers.
-
-TODO: to be done
+This example defines a function that adds two integers and calls it.
+    This example returns 1114
