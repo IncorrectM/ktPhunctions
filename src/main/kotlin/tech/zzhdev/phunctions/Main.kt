@@ -7,34 +7,12 @@ import org.jline.terminal.TerminalBuilder
 import tech.zzhdev.phunctions.parser.Parser
 
 fun main(args: Array<String>) {
-    if (args.map { it.lowercase() }.contains("repl")) {
+    if (args.isEmpty() || args.map { it.lowercase() }.contains("repl")) {
         repl()
     } else {
-        val source = """
-            (do
-                (def
-                    :addTwo
-                    (args :a :b)
-                    (+ :a :b)
-                )
-                (+ (:addTwo 1 (:addTwo 1 (:addTwo 10 (:addTwo 100 (:addTwo 999 1))))) (:addTwo 1 1))
-            )
-        """.trimIndent()
-
-        val parser = Parser(source)
-//         val tokens = parser.getTokens().getOrElse {
-//            println(it)
-//            return
-//         }
-//         tokens.forEach {
-//             println(it)
-//         }
-        val expression = parser.parse()
-//        println(expression)
-        println(expression.getOrNull()?.eval())
-//        val env = GlobalEnvironment
-//        println(GlobalEnvironment)
-        // println(expression.getOrNull()?.eval())
+        println("""
+            usage: '*executable* repl' or '*executable*' to start repl
+        """.trimIndent())
     }
 }
 
