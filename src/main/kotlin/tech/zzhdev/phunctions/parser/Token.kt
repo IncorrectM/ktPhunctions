@@ -14,6 +14,7 @@ object OperatorTokens {
 
     val EXCLAMATION = BasicToken("!")
 
+    val ARGS = BasicToken("args")
     val DEF = BasicToken("def")
     val DO = BasicToken("do")
 
@@ -29,6 +30,7 @@ object OperatorTokens {
 
         operators["!"] = EXCLAMATION
 
+        operators["args"] = ARGS
         operators["def"] = DEF
         operators["do"] = DO
     }

@@ -125,12 +125,21 @@ class Parser(private val source: String) {
             return Result.failure(SyntaxErrorException("expect an operator"))
         }
 
-        if (oprToken == OperatorTokens.DEF) {
-            symbolExpression.appendChild(parseVariableDefineExpression().getOrElse {
-                return Result.failure(it)
-            })
-            // closing is checked inside parseVariableDefineExpression
-            return Result.success(symbolExpression)
+        when (oprToken) {
+            OperatorTokens.DEF -> {
+                symbolExpression.appendChild(parseDefinitionExpression().getOrElse {
+                    return Result.failure(it)
+                })
+                // closing is checked inside parseVariableDefineExpression
+                return Result.success(symbolExpression)
+            }
+
+            OperatorTokens.ARGS -> {
+                symbolExpression.appendChild(parseArgsDefinitionExpression().getOrElse {
+                    return Result.failure(it)
+                })
+                return Result.success(symbolExpression)
+            }
         }
 
         symbolExpression.appendChild(OperatorExpression(oprToken.symbol))
@@ -168,7 +177,7 @@ class Parser(private val source: String) {
         return Result.success(symbolExpression)
     }
 
-    private fun parseVariableDefineExpression(): Result<VariableDefinitionExpression> {
+    private fun parseDefinitionExpression(): Result<Expression> {
         val idToken = nextToken().getOrElse {
             return Result.failure(it)
         }
@@ -186,13 +195,51 @@ class Parser(private val source: String) {
 
         when (valueToken) {
             OperatorTokens.LEFT_PARENT -> {
-                expression.children.add(parseSymbolExpression().getOrElse {
+                val innerExpression = parseSymbolExpression().getOrElse {
                     return Result.failure(it)
-                })
+                }
+                when (innerExpression.children[0]) {
+                    is ArgsDefinitionExpression -> {
+                        // declaring function
+                        val args = innerExpression.children[0] as ArgsDefinitionExpression
+                        // the definition of the function
+                        val leftParent = nextToken().getOrElse {
+                            return Result.failure(it)
+                        }
+                        if (leftParent != OperatorTokens.LEFT_PARENT) {
+                            return Result.failure(SyntaxErrorException("expecting symbol expression"))
+                        }
+                        val symbolExpression = parseSymbolExpression().getOrElse {
+                            return  Result.failure(it)
+                        }
+
+                        val endingToken = nextToken().getOrElse {
+                            return Result.failure(it)
+                        }
+                        if (endingToken != OperatorTokens.RIGHT_PARENT) {
+                            return Result.failure(SyntaxErrorException("expression is not closed"))
+                        }
+
+                        return Result.success(FunctionDefinitionExpression(
+                            IdentifierExpression(idToken.identifier),
+                            args,
+                            symbolExpression
+                        ))
+
+                    }
+
+                    else -> {
+                        // declaring variable
+                        expression.children.add(innerExpression)
+                        // go on
+                    }
+                }
             }
+
             is IntToken -> {
                 expression.children.add(ConstantIntExpression(valueToken.value))
             }
+
             else -> {
                 return Result.failure(SyntaxErrorException("expecting symbol expression or constant int"))
             }
@@ -219,5 +266,28 @@ class Parser(private val source: String) {
         }
 
         return Result.success(expression)
+    }
+
+    private fun parseArgsDefinitionExpression(): Result<ArgsDefinitionExpression> {
+        val args = ArgsDefinitionExpression()
+
+        var curToken = nextToken().getOrElse {
+            return Result.failure(it)
+        }
+        while (curToken != OperatorTokens.RIGHT_PARENT) {
+            if (curToken !is IdentifierToken) {
+                return Result.failure(SyntaxErrorException("expecting identifier"))
+            }
+
+            args.addArg(
+                IdentifierExpression(curToken.identifier)
+            )
+
+            curToken = nextToken().getOrElse {
+                return Result.failure(it)
+            }
+        }
+
+        return Result.success(args)
     }
 }

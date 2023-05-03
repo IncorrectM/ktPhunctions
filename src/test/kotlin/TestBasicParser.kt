@@ -351,6 +351,6 @@ class TestBasicParser {
 
         val expression = expressionResult.getOrNull()!!
         assert(expression.eval().isFailure)
-        assertEquals(EvaluationErrorException("b is no defined"), expression.eval().exceptionOrNull()!!)
+        assertEquals(EvaluationErrorException("b is not defined"), expression.eval().exceptionOrNull()!!)
     }
 }

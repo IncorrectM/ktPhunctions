@@ -1,6 +1,7 @@
 package tech.zzhdev.phunctions.expression
 
 import tech.zzhdev.phunctions.exception.EvaluationErrorException
+import java.util.*
 
 typealias EvaluationResult = Int
 typealias OperationEvaluator = (num1: Int, num2: Int) -> Result<EvaluationResult>
@@ -50,6 +51,52 @@ data class ConstantIntExpression(val value: Int): Expression {
 
 }
 
+data class FunctionExpression(
+    val environment: Environment,
+    val args: ArgsDefinitionExpression,
+    val expression: SymbolExpression
+): Expression {
+    override fun eval(): Result<EvaluationResult> {
+        val argList = Stack<Expression>()
+        for (arg in args.args) {
+            val value = environment.popGeneralExpression()
+                ?: return Result.failure(EvaluationErrorException("not enough arguments provided"))
+            argList.push(value)
+        }
+
+        for (arg in args.args) {
+            environment.putVar(arg.id, argList.pop())
+        }
+
+        return expression.eval()
+    }
+
+}
+
+data class FunctionDefinitionExpression(
+    val id: IdentifierExpression,
+    val args: ArgsDefinitionExpression,
+    val expression: SymbolExpression
+): Expression {
+    override fun eval(): Result<EvaluationResult> {
+        val env = Environment()
+        val parentEnv = GlobalEnvironment.getCurrentEnvironment() ?:
+            return Result.failure(EvaluationErrorException("no valid environment found"))
+
+        parentEnv.pushSubEnvironment(env)
+        args.eval() // define args that is related to the function
+        parentEnv.popCurrentEnvironment()
+
+        parentEnv.putVar(id.id,
+            FunctionExpression(
+                env, args, expression
+            ))
+
+        return Result.success(0)
+    }
+
+}
+
 data class VariableDefinitionExpression(
     val children: ArrayList<Expression> = ArrayList(),
     var evalNow: Boolean = false
@@ -78,17 +125,46 @@ data class VariableDefinitionExpression(
                     return Result.failure(EvaluationErrorException("expecting symbol expression or constant int"))
                 }
             }
-            Environment.putVar(name.id, ConstantIntExpression(idValue))
+            GlobalEnvironment.putVar(name.id, ConstantIntExpression(idValue))
             return Result.success(idValue)
         }
-        Environment.putVar(name.id, valueExpression)
+        GlobalEnvironment.putVar(name.id, valueExpression)
         return Result.success(0)
     }
 }
 
+data class ArgsDefinitionExpression(
+    val args: ArrayList<IdentifierExpression> = arrayListOf(),
+): Expression {
+
+    val argsCount
+        get() = args.size
+
+    fun addArg(id: IdentifierExpression) {
+        args.add(id)
+    }
+
+    override fun eval(): Result<EvaluationResult> {
+        val env = GlobalEnvironment.getCurrentEnvironment()
+            ?: return Result.failure(EvaluationErrorException("no valid environment for registering"))
+
+        args.forEach {
+            // initialize variable with default value
+            env.putVar(it.id, ConstantIntExpression(0))
+        }
+
+        return Result.success(0)
+    }
+
+}
+
 data class IdentifierExpression(val id: String): Expression {
     override fun eval(): Result<EvaluationResult> {
-        val value = Environment.getVar(id).getOrElse {
+        val env = GlobalEnvironment.getCurrentEnvironment() ?:
+            return Result.failure(EvaluationErrorException("no valid environment found"))
+        val value = env.getVarUpwards(id).getOrElse {
+            return Result.failure(it)
+        }.eval().getOrElse {
             return Result.failure(it)
         }
         return Result.success(value)
@@ -111,8 +187,18 @@ data class SymbolExpression(
 
         val operator = children.first()
 
-        if (operator is VariableDefinitionExpression) {
-            return operator.eval()
+        when (operator) {
+            is VariableDefinitionExpression -> {
+                return operator.eval()
+            }
+
+            is ArgsDefinitionExpression -> {
+                return operator.eval()
+            }
+
+            is FunctionDefinitionExpression -> {
+                return operator.eval()
+            }
         }
 
         if (operator !is OperatorExpression) {

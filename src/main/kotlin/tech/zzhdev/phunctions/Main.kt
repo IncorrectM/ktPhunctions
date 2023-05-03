@@ -1,39 +1,37 @@
 package tech.zzhdev.phunctions
 
 import org.jline.reader.EndOfFileException
-import org.jline.reader.LineReader
 import org.jline.reader.LineReaderBuilder
 import org.jline.reader.UserInterruptException
 import org.jline.terminal.TerminalBuilder
-import tech.zzhdev.phunctions.expression.Expression
-import tech.zzhdev.phunctions.expression.SymbolExpression
+import tech.zzhdev.phunctions.expression.GlobalEnvironment
 import tech.zzhdev.phunctions.parser.Parser
-import java.util.*
-import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     if (args.map { it.lowercase() }.contains("repl")) {
         repl()
     } else {
         val source = """
-            ( do
-                ( def
-                    :kto
-                    244
-                    !
-                )
-                ( *
-                    ( + 1 1)
-                    4
-                    :kto
-                )
-             )
+            (def
+                :addTwo
+                (args :a :b)
+                (+ :a :b)
+            )
         """.trimIndent()
 
         val parser = Parser(source)
+        // val tokens = parser.getTokens().getOrElse {
+        //    println(it)
+        //    return
+        // }
+        // tokens.forEach {
+        //     println(it)
+        // }
         val expression = parser.parse()
-        println(expression)
-//        println(expression.getOrNull()?.eval())
+        println(expression.getOrNull()?.eval())
+        val env = GlobalEnvironment
+        println(GlobalEnvironment)
+        // println(expression.getOrNull()?.eval())
     }
 }
 
