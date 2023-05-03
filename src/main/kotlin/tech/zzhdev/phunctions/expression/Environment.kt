@@ -12,18 +12,19 @@ open class Environment {
 
     fun getCurrentEnvironment(): Environment? {
         if (subEnvironmentsStack.isEmpty()) {
-            return GlobalEnvironment
+            return this
         }
-        return subEnvironmentsStack.peek()
+        val sub = subEnvironmentsStack.peek()
+        return sub.getCurrentEnvironment()
     }
 
     fun popCurrentEnvironment(): Environment? {
         if (subEnvironmentsStack.isEmpty()) {
-            return GlobalEnvironment
+            parentEnvironment?.subEnvironmentsStack?.pop()
+            this.parentEnvironment = null
+            return this
         }
-        val popped = subEnvironmentsStack.pop()
-        popped.parentEnvironment = null
-        return popped
+        return subEnvironmentsStack.peek().popCurrentEnvironment()
     }
 
     fun pushSubEnvironment(env: Environment) {

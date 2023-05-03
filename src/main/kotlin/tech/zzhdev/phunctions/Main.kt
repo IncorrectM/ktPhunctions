@@ -32,6 +32,8 @@ fun main(args: Array<String>) {
 //        val env = GlobalEnvironment
 //        println(GlobalEnvironment)
 //        // println(expression.getOrNull()?.eval())
+        val env = GlobalEnvironment
+
         val innerFunction = FunctionExpression(
             Environment(),
             args = ArgsDefinitionExpression(
@@ -48,9 +50,36 @@ fun main(args: Array<String>) {
                 IdentifierExpression("a"),
             )),
         )
-        innerFunction.environment.putVar("a", ConstantIntExpression(0))
-        innerFunction.environment.pushGeneralExpression(ConstantIntExpression(10))
-        println(innerFunction.eval())
+        env.putVar("aa", innerFunction)
+
+        val anotherInnerFunction = FunctionExpression(
+            Environment(),
+            args = ArgsDefinitionExpression(
+                args = arrayListOf(IdentifierExpression("a"))
+            ),
+            expression = SymbolExpression(arrayOf(
+                OperatorExpression("+"),
+                FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(10))),
+                IdentifierExpression("a"),
+            )),
+        )
+        env.putVar("b", anotherInnerFunction)
+
+        val function = FunctionExpression(
+            Environment(),
+            args = ArgsDefinitionExpression(
+                args = arrayListOf(IdentifierExpression("a"))
+            ),
+            expression = SymbolExpression(arrayOf(
+                OperatorExpression("+"),
+                FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(100))),
+                FunctionCallExpression("b", arrayListOf(ConstantIntExpression(555))),
+                FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(25))),
+                IdentifierExpression("a"),
+            )),
+        )
+        function.environment.pushGeneralExpression(ConstantIntExpression(10000))
+        println(function.eval())
     }
 }
 

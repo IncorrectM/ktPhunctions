@@ -51,6 +51,30 @@ data class ConstantIntExpression(val value: Int): Expression {
 
 }
 
+data class FunctionCallExpression(
+    val id: String,
+    val args: List<Expression> = ArrayList()
+): Expression {
+    override fun eval(): Result<EvaluationResult> {
+        val env = GlobalEnvironment.getCurrentEnvironment() ?:
+            return Result.failure(EvaluationErrorException("no valid environment found"))
+
+        val function = env.getVarUpwards(id).getOrElse {
+            return Result.failure(it)
+        }
+
+        if (function !is FunctionExpression) {
+            return Result.failure(EvaluationErrorException("$id is not a function"))
+        }
+
+        for (arg in args) {
+            function.environment.pushGeneralExpression(arg)
+        }
+
+        return function.eval()
+    }
+}
+
 data class FunctionExpression(
     val environment: Environment,
     val args: ArgsDefinitionExpression,

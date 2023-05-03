@@ -106,4 +106,68 @@ class TestFunction {
             assert(false)
         })
     }
+
+    @Test
+    fun testFunctionCallingManually() {
+        val env = GlobalEnvironment
+
+        // (+ (+ :a :a :a) :a)
+        // -> (* 4 :a)
+        val innerFunction = FunctionExpression(
+            Environment(),
+            args = ArgsDefinitionExpression(
+                args = arrayListOf(IdentifierExpression("a"))
+            ),
+            expression = SymbolExpression(arrayOf(
+                OperatorExpression("+"),
+                SymbolExpression(arrayOf(
+                    OperatorExpression("+"),
+                    IdentifierExpression("a"),
+                    IdentifierExpression("a"),
+                    IdentifierExpression("a"),
+                )),
+                IdentifierExpression("a"),
+            )),
+        )
+        env.putVar("aa", innerFunction)
+
+        // (+ (:aa 10) :a)
+        // -> (+ (* 4 10) :a)
+        // -> (+ 40 :a)
+        val anotherInnerFunction = FunctionExpression(
+            Environment(),
+            args = ArgsDefinitionExpression(
+                args = arrayListOf(IdentifierExpression("a"))
+            ),
+            expression = SymbolExpression(arrayOf(
+                OperatorExpression("+"),
+                FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(10))),
+                IdentifierExpression("a"),
+            )),
+        )
+        env.putVar("b", anotherInnerFunction)
+
+        // (+ (:aa 100) (:b 555) (:aa 25) :a)
+        // -> (+ 400 (+ 40 555) 100 :a)
+        // -> (+ 400 595 100 :a)
+        // -> (+ 1095 :a)
+        val function = FunctionExpression(
+            Environment(),
+            args = ArgsDefinitionExpression(
+                args = arrayListOf(IdentifierExpression("a"))
+            ),
+            expression = SymbolExpression(arrayOf(
+                OperatorExpression("+"),
+                FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(100))),
+                FunctionCallExpression("b", arrayListOf(ConstantIntExpression(555))),
+                FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(25))),
+                IdentifierExpression("a"),
+            )),
+        )
+        function.environment.pushGeneralExpression(ConstantIntExpression(10000))
+        // -> (+ 1095 :a)
+        // -> (+ 1095 10000)
+        // -> 11095
+        assertEquals(11095, function.eval().getOrNull())
+    }
 }
