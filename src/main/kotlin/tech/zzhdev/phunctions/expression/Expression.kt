@@ -68,7 +68,11 @@ data class FunctionExpression(
             environment.putVar(arg.id, argList.pop())
         }
 
-        return expression.eval()
+        val parentEnv = GlobalEnvironment.getCurrentEnvironment()!!
+        parentEnv.pushSubEnvironment(environment)
+        val result = expression.eval()
+        parentEnv.popCurrentEnvironment()
+        return result
     }
 
 }

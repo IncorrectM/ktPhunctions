@@ -4,34 +4,53 @@ import org.jline.reader.EndOfFileException
 import org.jline.reader.LineReaderBuilder
 import org.jline.reader.UserInterruptException
 import org.jline.terminal.TerminalBuilder
-import tech.zzhdev.phunctions.expression.GlobalEnvironment
+import tech.zzhdev.phunctions.expression.*
 import tech.zzhdev.phunctions.parser.Parser
 
 fun main(args: Array<String>) {
     if (args.map { it.lowercase() }.contains("repl")) {
         repl()
     } else {
-        val source = """
-            (def
-                :addTwo
-                (args :a :b)
-                (+ :a :b)
-            )
-        """.trimIndent()
-
-        val parser = Parser(source)
-        // val tokens = parser.getTokens().getOrElse {
-        //    println(it)
-        //    return
-        // }
-        // tokens.forEach {
-        //     println(it)
-        // }
-        val expression = parser.parse()
-        println(expression.getOrNull()?.eval())
-        val env = GlobalEnvironment
-        println(GlobalEnvironment)
-        // println(expression.getOrNull()?.eval())
+//        val source = """
+//            (def
+//                :addTwo
+//                (args :a :b)
+//                (+ :a :b)
+//            )
+//        """.trimIndent()
+//
+//        val parser = Parser(source)
+//        // val tokens = parser.getTokens().getOrElse {
+//        //    println(it)
+//        //    return
+//        // }
+//        // tokens.forEach {
+//        //     println(it)
+//        // }
+//        val expression = parser.parse()
+//        println(expression.getOrNull()?.eval())
+//        val env = GlobalEnvironment
+//        println(GlobalEnvironment)
+//        // println(expression.getOrNull()?.eval())
+        val innerFunction = FunctionExpression(
+            Environment(),
+            args = ArgsDefinitionExpression(
+                args = arrayListOf(IdentifierExpression("a"))
+            ),
+            expression = SymbolExpression(arrayOf(
+                OperatorExpression("+"),
+                SymbolExpression(arrayOf(
+                    OperatorExpression("+"),
+                    IdentifierExpression("a"),
+                    IdentifierExpression("a"),
+                    IdentifierExpression("a"),
+                )),
+                IdentifierExpression("a"),
+            )),
+        )
+        innerFunction.environment.putVar("a", ConstantIntExpression(0))
+        innerFunction.environment.pushGeneralExpression(ConstantIntExpression(10))
+        println(innerFunction.eval())
     }
 }
 

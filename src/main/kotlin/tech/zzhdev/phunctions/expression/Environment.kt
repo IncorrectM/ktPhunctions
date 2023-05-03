@@ -36,7 +36,7 @@ open class Environment {
         Result.failure(EvaluationErrorException("$id is not defined"))
 
     fun getVarUpwards(id: String): Result<Expression> {
-        var variable = variables[id]
+        val variable = variables[id]
         if (variable != null) {
             return Result.success(variable)
         }
