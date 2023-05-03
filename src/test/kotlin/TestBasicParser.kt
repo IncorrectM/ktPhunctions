@@ -2,7 +2,6 @@ import org.junit.jupiter.api.Test
 import tech.zzhdev.phunctions.exception.EvaluationErrorException
 import tech.zzhdev.phunctions.expression.*
 import tech.zzhdev.phunctions.parser.*
-import kotlin.test.AfterTest
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
@@ -219,7 +218,7 @@ class TestBasicParser {
         val expected = SymbolExpression(arrayOf(
             OperatorExpression("do"),
             SymbolExpression(arrayOf(
-                VariableDefineExpression(arrayListOf(
+                VariableDefinitionExpression(arrayListOf(
                     IdentifierExpression("kto"),
                     ConstantIntExpression(100),
                 )),

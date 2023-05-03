@@ -168,7 +168,7 @@ class Parser(private val source: String) {
         return Result.success(symbolExpression)
     }
 
-    private fun parseVariableDefineExpression(): Result<VariableDefineExpression> {
+    private fun parseVariableDefineExpression(): Result<VariableDefinitionExpression> {
         val idToken = nextToken().getOrElse {
             return Result.failure(it)
         }
@@ -177,7 +177,7 @@ class Parser(private val source: String) {
             return Result.failure(SyntaxErrorException("expecting an identifier name"))
         }
 
-        val expression = VariableDefineExpression()
+        val expression = VariableDefinitionExpression()
         expression.children.add(IdentifierExpression(idToken.identifier))
 
         val valueToken = nextToken().getOrElse {

@@ -50,7 +50,7 @@ data class ConstantIntExpression(val value: Int): Expression {
 
 }
 
-data class VariableDefineExpression(
+data class VariableDefinitionExpression(
     val children: ArrayList<Expression> = ArrayList(),
     var evalNow: Boolean = false
 ): Expression {
@@ -111,7 +111,7 @@ data class SymbolExpression(
 
         val operator = children.first()
 
-        if (operator is VariableDefineExpression) {
+        if (operator is VariableDefinitionExpression) {
             return operator.eval()
         }
 
