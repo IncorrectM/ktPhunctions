@@ -66,7 +66,9 @@ class Parser(private val source: String) {
             val identifier = builder.toString()
             // identifiers starts with :
             return if (identifier.startsWith(":")) {
-                Result.success(IdentifierToken(identifier.removePrefix(":")))
+                val id = IdentifierToken(identifier.removePrefix(":"))
+                lastToken = id
+                Result.success(id)
             } else {
                 Result.failure(NoSuchOperatorException(pos, builder.toString()))
             }
@@ -121,6 +123,14 @@ class Parser(private val source: String) {
 
         // second token should be an operator
         val oprToken = tokenResult.getOrNull()
+        // token can be an identifier if user try to call function
+        if (oprToken is IdentifierToken) {
+            symbolExpression.appendChild(parseFunctionCallExpression().getOrElse {
+                return Result.failure(it)
+            })
+            return Result.success(symbolExpression)
+        }
+
         if ((oprToken == null) || (oprToken !is BasicToken) || !OperatorTokens.isOperator(oprToken.symbol)) {
             return Result.failure(SyntaxErrorException("expect an operator"))
         }
@@ -289,5 +299,43 @@ class Parser(private val source: String) {
         }
 
         return Result.success(args)
+    }
+
+    private fun parseFunctionCallExpression(): Result<FunctionCallExpression> {
+        val id = lastToken
+        if (id == null || id !is IdentifierToken) {
+            return Result.failure(SyntaxErrorException("expected an identifier to call function"))
+        }
+
+        val args = arrayListOf<Expression>()
+        var currentToken = nextToken().getOrElse {
+            return Result.failure(it)
+        }
+        while (hasNext() && currentToken != OperatorTokens.RIGHT_PARENT) {
+            when(currentToken) {
+                OperatorTokens.LEFT_PARENT -> {
+                    args.add(parseSymbolExpression().getOrElse {
+                        return Result.failure(it)
+                    })
+                }
+
+                is IntToken -> {
+                    args.add(ConstantIntExpression(currentToken.value))
+                }
+
+                else -> {
+                    return Result.failure(SyntaxErrorException("expected symbol expression or constant integer"))
+                }
+            }
+
+            currentToken = nextToken().getOrElse {
+                return Result.failure(it)
+            }
+        }
+
+        return Result.success(FunctionCallExpression(
+            id.identifier,
+            args = args,
+        ))
     }
 }

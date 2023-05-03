@@ -227,6 +227,10 @@ data class SymbolExpression(
             is FunctionDefinitionExpression -> {
                 return operator.eval()
             }
+
+            is FunctionCallExpression -> {
+                return operator.eval()
+            }
         }
 
         if (operator !is OperatorExpression) {

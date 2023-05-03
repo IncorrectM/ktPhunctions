@@ -170,4 +170,29 @@ class TestFunction {
         // -> 11095
         assertEquals(11095, function.eval().getOrNull())
     }
+
+    @Test
+    fun testBasicFunctionCall() {
+        val source = """
+            (do
+                (def
+                    :addTwo
+                    (args :a :b)
+                    (+ :a :b)
+                )
+                (+ (:addTwo 1 (:addTwo 1 (:addTwo 10 (:addTwo 100 (:addTwo 999 1))))) (:addTwo 1 1))
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expression = parser.parse()
+        assert(expression.isSuccess)
+
+        val exprResult = expression.getOrNull()!!
+        assertEquals(1114, exprResult.eval().getOrElse {
+            assert(false)
+        })
+    }
 }

@@ -28,6 +28,9 @@ open class Environment {
     }
 
     fun pushSubEnvironment(env: Environment) {
+        if (env == this) {
+            return
+        }
         env.parentEnvironment = this
         subEnvironmentsStack.push(env)
     }
