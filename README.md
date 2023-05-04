@@ -76,6 +76,9 @@ Or a symbol expression:
 ```
 The value of variables will not be evaluated unless they are accessed.
 
+Another version that doesn't need `:` to declare identifier can be seen in the branch `feature-var-no-prefix`.
+    Be ware that `feature-var-no-prefix` is currently under estimation.
+
 ##### Lazy Evaluation
 By default, variables' value is evaluated only when accessed. 
 
