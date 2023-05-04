@@ -50,8 +50,8 @@ class TestBasicParser {
             (*
                 (+ 1 1)
                 4
-                :kto
-                :banana
+                kto
+                banana
             )
         """.trimIndent()
 
@@ -84,7 +84,7 @@ class TestBasicParser {
     fun testParsingExclamation() {
         val source = """
             (def
-                :a
+                a
                 1
                 !
             )
@@ -115,13 +115,13 @@ class TestBasicParser {
         val source = """
             ( do
                 ( def
-                    :kto
+                    kto
                     100
                 )
                 ( *
                     ( + 1 1)
                     4
-                    :kto
+                    kto
                 )
              )
         """.trimIndent()
@@ -197,13 +197,13 @@ class TestBasicParser {
         val source = """
             ( do
                 ( def
-                    :kto
+                    kto
                     100
                 )
                 ( *
                     ( + 1 1)
                     4
-                    :kto
+                    kto
                 )
              )
         """.trimIndent()
@@ -263,13 +263,13 @@ class TestBasicParser {
         val source = """
             ( do
                 ( def
-                    :kto
+                    kto
                     200
                 )
                 ( *
                     ( + 1 1)
                     4
-                    :kto
+                    kto
                 )
              )
         """.trimIndent()
@@ -290,14 +290,14 @@ class TestBasicParser {
         val source = """
             (do
                 (def 
-                    :a 
-                    (* 2 2 :b)
+                    a 
+                    (* 2 2 b)
                 )
                 (def 
-                    :b 
+                    b 
                     10
                 )
-                (* :a :b)
+                (* a b)
             )
         """.trimIndent()
 
@@ -316,7 +316,7 @@ class TestBasicParser {
     fun testInstantEvaluation() {
         val source = """
             (def 
-                :a 
+                a 
                 (* 2 2)
                 !
             )
@@ -337,8 +337,8 @@ class TestBasicParser {
     fun testInstantEvaluationFailed() {
         val source = """
             (def 
-                :a 
-                (* 2 :b)
+                a 
+                (* 2 b)
                 !
             )
         """.trimIndent()

@@ -1,7 +1,6 @@
 package tech.zzhdev.phunctions.parser
 
 import tech.zzhdev.phunctions.exception.EndOfSourceException
-import tech.zzhdev.phunctions.exception.NoSuchOperatorException
 import tech.zzhdev.phunctions.exception.SyntaxErrorException
 import tech.zzhdev.phunctions.expression.*
 
@@ -65,13 +64,13 @@ class Parser(private val source: String) {
         return if (opr == null) {
             val identifier = builder.toString()
             // identifiers starts with :
-            return if (identifier.startsWith(":")) {
-                val id = IdentifierToken(identifier.removePrefix(":"))
-                lastToken = id
-                Result.success(id)
-            } else {
-                Result.failure(NoSuchOperatorException(pos, builder.toString()))
-            }
+//            return if (identifier.startsWith(":")) {
+            val id = IdentifierToken(identifier)
+            lastToken = id
+            Result.success(id)
+//            } else {
+//                Result.failure(NoSuchOperatorException(pos, builder.toString()))
+//            }
         } else {
             lastToken = opr
             Result.success(opr)

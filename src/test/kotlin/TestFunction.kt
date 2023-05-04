@@ -11,7 +11,7 @@ class TestFunction {
     @Test
     fun testParsingArgsToTokens() {
         val source = """
-            (args :a :b)
+            (args a b)
         """.trimIndent()
 
         val parser = Parser(source)
@@ -36,7 +36,7 @@ class TestFunction {
     @Test
     fun testParsingArgsDefinitionExpression() {
         val source = """
-            (args :a :b)
+            (args a b)
         """.trimIndent()
 
         val parser = Parser(source)
@@ -57,9 +57,9 @@ class TestFunction {
     fun testParsingFunctionDefinitionExpression() {
         val source = """
             (def
-                :addTwo
-                (args :a :b)
-                (+ :a :b)
+                addTwo
+                (args a b)
+                (+ a b)
             )
         """.trimIndent()
 
@@ -89,9 +89,9 @@ class TestFunction {
     fun testEvaluatingFunctionDefinitionExpression() {
         val source = """
             (def
-                :addTwo
-                (args :a :b)
-                (+ :a :b)
+                addTwo
+                (args a b)
+                (+ a b)
             )
         """.trimIndent()
 
@@ -111,8 +111,8 @@ class TestFunction {
     fun testFunctionCallingManually() {
         val env = GlobalEnvironment
 
-        // (+ (+ :a :a :a) :a)
-        // -> (* 4 :a)
+        // (+ (+ a a a) a)
+        // -> (* 4 a)
         val innerFunction = FunctionExpression(
             Environment(),
             args = ArgsDefinitionExpression(
@@ -131,9 +131,9 @@ class TestFunction {
         )
         env.putVar("aa", innerFunction)
 
-        // (+ (:aa 10) :a)
-        // -> (+ (* 4 10) :a)
-        // -> (+ 40 :a)
+        // (+ (aa 10) a)
+        // -> (+ (* 4 10) a)
+        // -> (+ 40 a)
         val anotherInnerFunction = FunctionExpression(
             Environment(),
             args = ArgsDefinitionExpression(
@@ -147,10 +147,10 @@ class TestFunction {
         )
         env.putVar("b", anotherInnerFunction)
 
-        // (+ (:aa 100) (:b 555) (:aa 25) :a)
-        // -> (+ 400 (+ 40 555) 100 :a)
-        // -> (+ 400 595 100 :a)
-        // -> (+ 1095 :a)
+        // (+ (aa 100) (b 555) (aa 25) a)
+        // -> (+ 400 (+ 40 555) 100 a)
+        // -> (+ 400 595 100 a)
+        // -> (+ 1095 a)
         val function = FunctionExpression(
             Environment(),
             args = ArgsDefinitionExpression(
@@ -165,7 +165,7 @@ class TestFunction {
             )),
         )
         function.environment.pushGeneralExpression(ConstantIntExpression(10000))
-        // -> (+ 1095 :a)
+        // -> (+ 1095 a)
         // -> (+ 1095 10000)
         // -> 11095
         assertEquals(11095, function.eval().getOrNull())
@@ -176,11 +176,11 @@ class TestFunction {
         val source = """
             (do
                 (def
-                    :addTwo
-                    (args :a :b)
-                    (+ :a :b)
+                    addTwo
+                    (args a b)
+                    (+ a b)
                 )
-                (+ (:addTwo 1 (:addTwo 1 (:addTwo 10 (:addTwo 100 (:addTwo 999 1))))) (:addTwo 1 1))
+                (+ (addTwo 1 (addTwo 1 (addTwo 10 (addTwo 100 (addTwo 999 1))))) (addTwo 1 1))
             )
         """.trimIndent()
 
