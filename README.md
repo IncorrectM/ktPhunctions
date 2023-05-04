@@ -1,5 +1,11 @@
 # Phunctions
 
+## Attention
+
+This branch is the version of Phunctions that does not need ':' to declare or access identifiers.
+
+It is still under consideration whether to merge  the change or not.
+
 ## Introduction
 
 Phunctions is a simple functional programming language that is inspired by Lisp.
@@ -15,14 +21,14 @@ This project is the first and only implementation for the interpreter of this la
 ```Phunctions
 (do
     (def 
-        :a 
-        (* 2 2 :b)
+        a 
+        (* 2 2 b)
     )
     (def 
-        :b 
+        b 
         10
     )
-    (* :a :b)
+    (* a b)
 )
 ```
 This example returns 400.
@@ -68,11 +74,11 @@ This example adds 1 and 1. Replace '+' with '-', '*', '/' to perform
 
 You can bind an constant integer expression with a name:
 ```Phunctions
-(def :a 10)
+(def a 10)
 ```
 Or a symbol expression:
 ```Phunctions
-(def :a (+ 1 1))
+(def a (+ 1 1))
 ```
 The value of variables will not be evaluated unless they are accessed.
 
@@ -82,14 +88,14 @@ By default, variables' value is evaluated only when accessed.
 Which means the example below is valid.
 ```Phunctions
 (do
-    (def :a (+ 1 :b))
-    (def :b 1)
-    (+ 0 :a)
+    (def a (+ 1 b))
+    (def b 1)
+    (+ 0 a)
 )
 ```
 This example returns `2`.
 
-Under this condition, `(def :a (+ 1 :b))` and `(def :b 1)` simply returns `0`.
+Under this condition, `(def a (+ 1 b))` and `(def b 1)` simply returns `0`.
 
 #### Instant Evaluation
 
@@ -98,7 +104,7 @@ You can explicitly ask Phunctions to evaluate the value of variables as soon as 
 Here's an example.
 
 ```Phunctions
-(def :a (+ 1 1) !)
+(def a (+ 1 1) !)
 ```
 
 This example returns `2`(the result of (+ 1 1)).
@@ -106,7 +112,7 @@ This example returns `2`(the result of (+ 1 1)).
 To show the different between instant evaluation and lazy evaluation, here is one more example.
 
 ```Phunctions
-(def :a (+ 1 :b) !)
+(def a (+ 1 b) !)
 ```
 
 This example will throw an EvaluationErrorException which says `b is no defined` since variable `b` is not defined 
@@ -114,24 +120,24 @@ This example will throw an EvaluationErrorException which says `b is no defined`
 
 ```Phunctions
 (do
-    (def :b 0)
-    (def :a (+ 1 :b) !)
-    (+ 0 :a)
-    (def :b 99)
-    (+ 0 :a)
+    (def b 0)
+    (def a (+ 1 b) !)
+    (+ 0 a)
+    (def b 99)
+    (+ 0 a)
 )
 ```
 
-In this example, two `(+ 0 :a)` returns exactly the same `1` since the value of `a` is evaluated as `a` as soon as it 
+In this example, two `(+ 0 a)` returns exactly the same `1` since the value of `a` is evaluated as `a` as soon as it 
     is defined.
 
 #### Re-binding
 Variables can be re-bond. This following expression is evaluated to 3.
 ```Phunctions
 (do
-    (def :a (+ 1 1))
-    (def :a (+ 1 2))
-    (+ 0 :a)
+    (def a (+ 1 1))
+    (def a (+ 1 2))
+    (+ 0 a)
 )
 ```
 
@@ -142,11 +148,11 @@ TODO: restricted bind - a variable that can not be rebind
 ```Phunctions
 (do
     (def
-        :addTwo
-        (args :a :b)
-        (+ :a :b)
+        addTwo
+        (args a b)
+        (+ a b)
     )
-    (+ (:addTwo 1 (:addTwo 1 (:addTwo 10 (:addTwo 100 (:addTwo 999 1))))) (:addTwo 1 1))
+    (+ (addTwo 1 (addTwo 1 (addTwo 10 (addTwo 100 (addTwo 999 1))))) (addTwo 1 1))
 )
 ```
 
