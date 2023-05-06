@@ -135,7 +135,24 @@ Variables can be re-bond. This following expression is evaluated to 3.
 )
 ```
 
-TODO: restricted bind - a variable that can not be rebind
+TODO: restricted bind - a variable that can not be re-bond
+
+#### Boolean Expression
+
+In Phunctions, 0's are treated as false, other integers are treated as true.
+
+For convenience, Phunctions provides two builtin variable representing boolean values:
+    `True` and `False`. `True` equals constant `1` and `False` equals constant `0`.
+
+They can be accessed like this:
+```Phunctions
+(+ :True 1)
+```
+
+Since they are special builtin variables, it's possible to access them without ':'.
+```Phunctions
+(+ True 1)
+```
 
 #### Function Define Expression
 
