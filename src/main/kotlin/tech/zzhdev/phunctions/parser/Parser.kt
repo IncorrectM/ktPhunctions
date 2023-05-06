@@ -65,7 +65,7 @@ class Parser(private val source: String) {
         return if (opr == null) {
             val identifier = builder.toString()
             // identifiers starts with :
-            return if (identifier.startsWith(":")) {
+            return if (identifier.startsWith(":") || GlobalEnvironment.isBuiltinVar(identifier)) {
                 val id = IdentifierToken(identifier.removePrefix(":"))
                 lastToken = id
                 Result.success(id)
