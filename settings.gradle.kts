@@ -1,3 +1,2 @@
-
-rootProject.name = "TryToMakeACalculater"
+rootProject.name = "Phunctions"
 
