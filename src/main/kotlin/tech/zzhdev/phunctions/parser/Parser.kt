@@ -150,6 +150,13 @@ class Parser(private val source: String) {
                 })
                 return Result.success(symbolExpression)
             }
+
+            OperatorTokens.IF -> {
+                symbolExpression.appendChild(parseIfExpression().getOrElse {
+                    return Result.failure(it)
+                })
+                return Result.success(symbolExpression)
+            }
         }
 
         symbolExpression.appendChild(OperatorExpression(oprToken.symbol))
@@ -324,7 +331,7 @@ class Parser(private val source: String) {
                 }
 
                 else -> {
-                    return Result.failure(SyntaxErrorException("expected symbol expression or constant integer"))
+                    return Result.failure(SyntaxErrorException("expecting symbol expression or constant integer"))
                 }
             }
 
@@ -337,5 +344,41 @@ class Parser(private val source: String) {
             id.identifier,
             args = args,
         ))
+    }
+
+    private fun parseIfExpression(): Result<IfExpression> {
+        val conditionalExpression = parseValueExpression().getOrElse {
+            return Result.failure(it)
+        }
+        val trueBranch = parseValueExpression().getOrElse {
+            return Result.failure(it)
+        }
+
+        val falseBranch = parseValueExpression().getOrElse {
+            return Result.failure(it)
+        }
+        if (falseBranch !is SymbolExpression) { // remove remaining ')'
+            nextToken()
+        }
+
+        return Result.success(IfExpression(conditionalExpression, trueBranch, falseBranch))
+    }
+
+    private fun parseValueExpression(): Result<Expression> {
+        val token = nextToken().getOrElse {
+            return Result.failure(it)
+        }
+        val expression: Expression = when(token) {
+            OperatorTokens.LEFT_PARENT -> parseSymbolExpression().getOrElse {
+                return Result.failure(it)
+            }
+            is IntToken -> ConstantIntExpression(token.value)
+            is IdentifierToken -> IdentifierExpression(token.identifier)
+            else -> {
+                println(token)
+                return Result.failure(SyntaxErrorException("expecting symbol expression or constant integer"))
+            }
+        }
+        return Result.success(expression)
     }
 }

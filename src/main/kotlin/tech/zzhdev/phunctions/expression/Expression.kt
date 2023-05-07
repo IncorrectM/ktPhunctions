@@ -199,6 +199,24 @@ data class IdentifierExpression(val id: String): Expression {
     }
 }
 
+data class IfExpression(
+    val condition: Expression,
+    val trueBranch: Expression,
+    val falseBranch: Expression,
+): Expression {
+    override fun eval(): Result<EvaluationResult> {
+        val conditionalResult = condition.eval().getOrElse {
+            return Result.failure(it)
+        }
+
+        return if (conditionalResult == 0) {
+            falseBranch.eval()
+        } else {
+            trueBranch.eval()
+        }
+    }
+}
+
 data class SymbolExpression(
     val children: ArrayList<Expression> = ArrayList()
 ): Expression {
@@ -229,6 +247,10 @@ data class SymbolExpression(
             }
 
             is FunctionCallExpression -> {
+                return operator.eval()
+            }
+
+            is IfExpression -> {
                 return operator.eval()
             }
         }

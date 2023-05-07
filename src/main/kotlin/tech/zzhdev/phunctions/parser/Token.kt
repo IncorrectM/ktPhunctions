@@ -17,6 +17,7 @@ object OperatorTokens {
     val ARGS = BasicToken("args")
     val DEF = BasicToken("def")
     val DO = BasicToken("do")
+    val IF = BasicToken("if")
 
     private val operators = HashMap<String, BasicToken>()
     init {
@@ -33,6 +34,7 @@ object OperatorTokens {
         operators["args"] = ARGS
         operators["def"] = DEF
         operators["do"] = DO
+        operators["if"] = IF
     }
     private val registeredOperators
         get() = operators.values
