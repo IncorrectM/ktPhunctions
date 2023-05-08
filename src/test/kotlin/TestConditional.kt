@@ -83,7 +83,7 @@ class TestConditional {
                     )
                 )),
                 falseBranch = SymbolExpression(arrayOf(
-                    OperatorExpression("+"),
+                    BinaryOperatorExpression("+"),
                     ConstantIntExpression(2),
                     ConstantIntExpression(0)
                 )),
@@ -137,7 +137,7 @@ class TestConditional {
                     :fib
                     (args :n)
                     (if
-                        (or (= :n 0) (= :n 1))
+                        (< :n 2)
                         1
                         (+ (:fib (- 1 :n)) (:fib (- 2 :n)) )
                     )

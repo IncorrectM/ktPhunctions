@@ -4,7 +4,8 @@ import tech.zzhdev.phunctions.exception.EvaluationErrorException
 import java.util.*
 
 typealias EvaluationResult = Int
-typealias OperationEvaluator = (num1: Int, num2: Int) -> Result<EvaluationResult>
+typealias UnaryOperationEvaluator = (num: Int) -> Result<EvaluationResult>
+typealias BinaryOperationEvaluator = (num1: Int, num2: Int) -> Result<EvaluationResult>
 
 fun Boolean.toInt() = if (this) 1 else 0
 
@@ -12,17 +13,17 @@ interface Expression {
     fun eval(): Result<EvaluationResult>
 }
 
-data class OperatorExpression(
+data class BinaryOperatorExpression(
     val symbol: String
     ): Expression {
 
-    val evaluator: OperationEvaluator? = operationEvaluators[symbol]
+    val evaluator: BinaryOperationEvaluator? = operationEvaluators[symbol]
     override fun eval(): Result<EvaluationResult> {
         return Result.failure(EvaluationErrorException("operators can not be evaluated"))
     }
 
     companion object {
-        private val operationEvaluators = HashMap<String, OperationEvaluator>()
+        private val operationEvaluators = HashMap<String, BinaryOperationEvaluator>()
         init {
             operationEvaluators["+"] = { num1: Int, num2: Int ->
                 Result.success(num1 + num2)
@@ -276,7 +277,7 @@ data class SymbolExpression(
             }
         }
 
-        if (operator !is OperatorExpression) {
+        if (operator !is BinaryOperatorExpression) {
             return Result.failure(EvaluationErrorException("first child is not operator"))
         }
         if (operator.evaluator == null) {

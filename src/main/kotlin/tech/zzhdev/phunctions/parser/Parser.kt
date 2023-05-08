@@ -159,7 +159,7 @@ class Parser(private val source: String) {
             }
         }
 
-        symbolExpression.appendChild(OperatorExpression(oprToken.symbol))
+        symbolExpression.appendChild(BinaryOperatorExpression(oprToken.symbol))
 
         // parse remaining children
         tokenResult = nextToken()
