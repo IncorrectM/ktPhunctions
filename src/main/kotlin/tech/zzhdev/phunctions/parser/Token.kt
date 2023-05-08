@@ -12,6 +12,10 @@ object OperatorTokens {
     val MULTIPLY = BasicToken("*")
     val DIVIDE = BasicToken("/")
 
+    val EQUAL = BasicToken("=")
+    val GREATER = BasicToken(">")
+    val LESS = BasicToken("<")
+
     val EXCLAMATION = BasicToken("!")
 
     val ARGS = BasicToken("args")
@@ -28,6 +32,10 @@ object OperatorTokens {
         operators["-"] = MINUS
         operators["*"] = MULTIPLY
         operators["/"] = DIVIDE
+
+        operators["="] = EQUAL
+        operators[">"] = GREATER
+        operators["<"] = LESS
 
         operators["!"] = EXCLAMATION
 

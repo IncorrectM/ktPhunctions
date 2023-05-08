@@ -62,4 +62,24 @@ class TestBoolean {
         assert(result.isSuccess)
         assertEquals(2, result.getOrNull()!!)
     }
+
+    @Test
+    fun testEvaluatingComparison() {
+        val source = """
+            (=
+                (> 1 0)
+                (< 0 1)
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expression = parser.parse().getOrElse {
+            return
+        }
+        val result = expression.eval()
+        assert(result.isSuccess)
+        assertEquals(1, result.getOrNull()!!)
+    }
 }

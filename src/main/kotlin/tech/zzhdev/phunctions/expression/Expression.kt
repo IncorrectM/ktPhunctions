@@ -6,6 +6,8 @@ import java.util.*
 typealias EvaluationResult = Int
 typealias OperationEvaluator = (num1: Int, num2: Int) -> Result<EvaluationResult>
 
+fun Boolean.toInt() = if (this) 1 else 0
+
 interface Expression {
     fun eval(): Result<EvaluationResult>
 }
@@ -40,6 +42,15 @@ data class OperatorExpression(
             }
             operationEvaluators["do"] = { num1: Int, num2: Int ->
                 Result.success(num2)
+            }
+            operationEvaluators["="] = { num1: Int, num2: Int ->
+                Result.success((num1 == num2).toInt())
+            }
+            operationEvaluators[">"] = { num1: Int, num2: Int ->
+                Result.success((num1 > num2).toInt())
+            }
+            operationEvaluators["<"] = { num1: Int, num2: Int ->
+                Result.success((num1 < num2).toInt())
             }
         }
     }
