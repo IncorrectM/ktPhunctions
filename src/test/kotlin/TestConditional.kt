@@ -124,4 +124,26 @@ class TestConditional {
 
         assertEquals(1, result.getOrNull()!!)
     }
+
+    @Test
+    fun testFibonacci() {
+        /**
+         * The ultimate goal of this branch.
+         * UNDER DEVELOPMENT
+         * */
+        val source = """
+            (do
+                (def
+                    :fib
+                    (args :n)
+                    (if
+                        (or (= :n 0) (= :n 1))
+                        1
+                        (+ (:fib (- 1 :n)) (:fib (- 2 :n)) )
+                    )
+                )
+                (:fib 20)
+            )
+        """.trimIndent()
+    }
 }
