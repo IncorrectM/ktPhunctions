@@ -176,14 +176,14 @@ class TestBasicParser {
 
         val expression = expressionResult.getOrNull()!!
         val expected = SymbolExpression(arrayOf(
-            OperatorExpression("*"),
+            BinaryOperatorExpression("*"),
             SymbolExpression(arrayOf(
-                OperatorExpression("+"),
+                BinaryOperatorExpression("+"),
                 ConstantIntExpression(1),
                 ConstantIntExpression(1),
             )),
             SymbolExpression(arrayOf(
-                OperatorExpression("*"),
+                BinaryOperatorExpression("*"),
                 ConstantIntExpression(2),
                 ConstantIntExpression(2),
             )),
@@ -216,7 +216,7 @@ class TestBasicParser {
 
         val expression = expressionResult.getOrNull()!!
         val expected = SymbolExpression(arrayOf(
-            OperatorExpression("do"),
+            BinaryOperatorExpression("do"),
             SymbolExpression(arrayOf(
                 VariableDefinitionExpression(arrayListOf(
                     IdentifierExpression("kto"),
@@ -224,9 +224,9 @@ class TestBasicParser {
                 )),
             )),
             SymbolExpression(arrayOf(
-                OperatorExpression("*"),
+                BinaryOperatorExpression("*"),
                 SymbolExpression(arrayOf(
-                    OperatorExpression("+"),
+                    BinaryOperatorExpression("+"),
                     ConstantIntExpression(1),
                     ConstantIntExpression(1),
                 )),

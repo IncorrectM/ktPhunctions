@@ -77,7 +77,7 @@ class TestFunction {
                         IdentifierExpression("b")
                 )),
                 expression = SymbolExpression(arrayOf(
-                    OperatorExpression("+"),
+                    BinaryOperatorExpression("+"),
                     IdentifierExpression("a"),
                     IdentifierExpression("b")
                 )),
@@ -119,9 +119,9 @@ class TestFunction {
                 args = arrayListOf(IdentifierExpression("a"))
             ),
             expression = SymbolExpression(arrayOf(
-                OperatorExpression("+"),
+                BinaryOperatorExpression("+"),
                 SymbolExpression(arrayOf(
-                    OperatorExpression("+"),
+                    BinaryOperatorExpression("+"),
                     IdentifierExpression("a"),
                     IdentifierExpression("a"),
                     IdentifierExpression("a"),
@@ -140,7 +140,7 @@ class TestFunction {
                 args = arrayListOf(IdentifierExpression("a"))
             ),
             expression = SymbolExpression(arrayOf(
-                OperatorExpression("+"),
+                BinaryOperatorExpression("+"),
                 FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(10))),
                 IdentifierExpression("a"),
             )),
@@ -157,7 +157,7 @@ class TestFunction {
                 args = arrayListOf(IdentifierExpression("a"))
             ),
             expression = SymbolExpression(arrayOf(
-                OperatorExpression("+"),
+                BinaryOperatorExpression("+"),
                 FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(100))),
                 FunctionCallExpression("b", arrayListOf(ConstantIntExpression(555))),
                 FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(25))),

@@ -63,7 +63,16 @@ open class Environment {
 }
 
 object GlobalEnvironment: Environment() {
+    val builtin = hashMapOf<String, Expression>(
+        "True" to ConstantIntExpression(1),
+        "False" to ConstantIntExpression(0)
+    )
     init {
         parentEnvironment = null
+        builtin.forEach { (k, v) ->
+            putVar(k, v)
+        }
     }
+
+    fun isBuiltinVar(id: String) = builtin[id] != null
 }
