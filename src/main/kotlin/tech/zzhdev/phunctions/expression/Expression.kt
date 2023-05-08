@@ -13,11 +13,16 @@ interface Expression {
     fun eval(): Result<EvaluationResult>
 }
 
-data class BinaryOperatorExpression(
-    val symbol: String
-    ): Expression {
+abstract class OperatorExpression<T>: Expression {
+    abstract val symbol: String
+    abstract val evaluator: T?
+}
 
-    val evaluator: BinaryOperationEvaluator? = operationEvaluators[symbol]
+data class BinaryOperatorExpression(
+    override val symbol: String
+    ): OperatorExpression<BinaryOperationEvaluator>() {
+
+    override val evaluator: BinaryOperationEvaluator? = operationEvaluators[symbol]
     override fun eval(): Result<EvaluationResult> {
         return Result.failure(EvaluationErrorException("operators can not be evaluated"))
     }
@@ -50,10 +55,6 @@ data class BinaryOperatorExpression(
             operationEvaluators["or"] = { num1: Int, num2: Int ->
                 Result.success(num1 + num2)
             }
-            // TODO: `not` is an unary operation, which means it should not be here
-            operationEvaluators["not"] = { num1: Int, num2: Int ->
-                Result.success(if (num1 == 0) 1 else 0)
-            }
             operationEvaluators["="] = { num1: Int, num2: Int ->
                 Result.success((num1 == num2).toInt())
             }
@@ -64,8 +65,32 @@ data class BinaryOperatorExpression(
                 Result.success((num1 < num2).toInt())
             }
         }
+
+        fun isBinaryOperator(symbol: String) = operationEvaluators[symbol] != null
     }
 }
+
+data class UnaryOperatorExpression(
+    override val symbol: String
+): OperatorExpression<UnaryOperationEvaluator>() {
+
+    override val evaluator: UnaryOperationEvaluator? = operationEvaluators[symbol]
+    override fun eval(): Result<EvaluationResult> {
+        return Result.failure(EvaluationErrorException("operators can not be evaluated"))
+    }
+
+    companion object {
+        private val operationEvaluators = HashMap<String, UnaryOperationEvaluator>()
+        init {
+            operationEvaluators["not"] = { num1: Int ->
+                Result.success(if (num1 == 0) 1 else 0)
+            }
+        }
+
+        fun isUnaryOperator(symbol: String) = operationEvaluators[symbol] != null
+    }
+}
+
 data class ConstantIntExpression(val value: Int): Expression {
     override fun eval(): Result<EvaluationResult> {
         return Result.success(value)
@@ -277,11 +302,12 @@ data class SymbolExpression(
             }
         }
 
-        if (operator !is BinaryOperatorExpression) {
+        if (operator !is BinaryOperatorExpression && operator !is UnaryOperatorExpression) {
             return Result.failure(EvaluationErrorException("first child is not operator"))
         }
-        if (operator.evaluator == null) {
-            return Result.failure(EvaluationErrorException("'${operator.symbol}' can not be evaluated"))
+        if (operator is BinaryOperatorExpression && operator.evaluator == null ||
+            operator is UnaryOperatorExpression && operator.evaluator == null) {
+            return Result.failure(EvaluationErrorException("'${(operator as OperatorExpression<*>).symbol}' can not be evaluated"))
         }
 
         if (children.size == 1) {
@@ -291,13 +317,23 @@ data class SymbolExpression(
         var x = children[1].eval().getOrElse {
             return Result.failure(it)
         }
-        var index = 2
-        while (index < children.size) {
-            val y = children[index++].eval().getOrElse {
-                return Result.failure(it)
+        when (operator) {
+            is BinaryOperatorExpression -> {
+                var index = 2
+                while (index < children.size) {
+                    val y = children[index++].eval().getOrElse {
+                        return Result.failure(it)
+                    }
+                    x = operator.evaluator!!(x, y).getOrElse {
+                        return Result.failure(it)
+                    }
+                }
             }
-            x = operator.evaluator!!(x, y).getOrElse {
-                return Result.failure(it)
+
+            is UnaryOperatorExpression -> {
+                x = operator.evaluator!!(x).getOrElse {
+                    return Result.failure(it)
+                }
             }
         }
 

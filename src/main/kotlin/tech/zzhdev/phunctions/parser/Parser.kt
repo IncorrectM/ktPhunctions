@@ -159,7 +159,13 @@ class Parser(private val source: String) {
             }
         }
 
-        symbolExpression.appendChild(BinaryOperatorExpression(oprToken.symbol))
+        symbolExpression.appendChild(
+            if (BinaryOperatorExpression.isBinaryOperator(oprToken.symbol)) {
+                BinaryOperatorExpression(oprToken.symbol)
+            } else {
+                UnaryOperatorExpression(oprToken.symbol)
+            }
+        )
 
         // parse remaining children
         tokenResult = nextToken()
@@ -347,38 +353,46 @@ class Parser(private val source: String) {
     }
 
     private fun parseIfExpression(): Result<IfExpression> {
-        val conditionalExpression = parseValueExpression().getOrElse {
+        val expression = parseValueExpressionList().getOrElse {
             return Result.failure(it)
         }
-        val trueBranch = parseValueExpression().getOrElse {
-            return Result.failure(it)
+        if (expression.size < 3) {
+            return Result.failure(SyntaxErrorException("expecting three expressions"))
         }
-
-        val falseBranch = parseValueExpression().getOrElse {
-            return Result.failure(it)
-        }
-        if (falseBranch !is SymbolExpression) { // remove remaining ')'
-            nextToken()
-        }
-
-        return Result.success(IfExpression(conditionalExpression, trueBranch, falseBranch))
+        return Result.success(IfExpression(
+            condition = expression[0],
+            trueBranch = expression[1],
+            falseBranch = expression[2]
+        ))
     }
 
-    private fun parseValueExpression(): Result<Expression> {
-        val token = nextToken().getOrElse {
-            return Result.failure(it)
-        }
-        val expression: Expression = when(token) {
-            OperatorTokens.LEFT_PARENT -> parseSymbolExpression().getOrElse {
-                return Result.failure(it)
+    private fun parseValueExpressionList(): Result<List<Expression>> {
+        var tokenResult = nextToken()
+        val expressions = arrayListOf<Expression>()
+        while (tokenResult.isSuccess && tokenResult.getOrNull()!! != OperatorTokens.RIGHT_PARENT && hasNext()) {
+            when (val token = tokenResult.getOrNull()!!) {
+                is IntToken -> {
+                    expressions.add(ConstantIntExpression(token.value))
+                }
+
+                OperatorTokens.LEFT_PARENT -> {
+                    val result = parseSymbolExpression()
+                    if (result.isFailure) {
+                        return  Result.failure(result.exceptionOrNull()!!)
+                    }
+                    expressions.add(result.getOrNull()!!)
+                }
+
+                is IdentifierToken -> {
+                    expressions.add(IdentifierExpression(token.identifier))
+                }
+
+                else -> {
+                    return Result.failure(SyntaxErrorException("expecting an expression, got $token"))
+                }
             }
-            is IntToken -> ConstantIntExpression(token.value)
-            is IdentifierToken -> IdentifierExpression(token.identifier)
-            else -> {
-                println(token)
-                return Result.failure(SyntaxErrorException("expecting symbol expression or constant integer"))
-            }
+            tokenResult = nextToken()
         }
-        return Result.success(expression)
+        return Result.success(expressions)
     }
 }
