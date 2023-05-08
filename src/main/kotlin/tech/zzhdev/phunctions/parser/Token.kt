@@ -18,6 +18,10 @@ object OperatorTokens {
 
     val EXCLAMATION = BasicToken("!")
 
+    val AND = BasicToken("and")
+    val OR = BasicToken("or")
+    val NOT = BasicToken("not")
+
     val ARGS = BasicToken("args")
     val DEF = BasicToken("def")
     val DO = BasicToken("do")
@@ -38,6 +42,10 @@ object OperatorTokens {
         operators["<"] = LESS
 
         operators["!"] = EXCLAMATION
+
+        operators["and"] = AND
+        operators["or"] = OR
+        operators["not"] = NOT
 
         operators["args"] = ARGS
         operators["def"] = DEF

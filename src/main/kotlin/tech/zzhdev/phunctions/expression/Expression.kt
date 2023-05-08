@@ -43,6 +43,16 @@ data class OperatorExpression(
             operationEvaluators["do"] = { num1: Int, num2: Int ->
                 Result.success(num2)
             }
+            operationEvaluators["and"] = { num1: Int, num2: Int ->
+                Result.success(num1 * num2)
+            }
+            operationEvaluators["or"] = { num1: Int, num2: Int ->
+                Result.success(num1 + num2)
+            }
+            // TODO: `not` is an unary operation, which means it should not be here
+            operationEvaluators["not"] = { num1: Int, num2: Int ->
+                Result.success(if (num1 == 0) 1 else 0)
+            }
             operationEvaluators["="] = { num1: Int, num2: Int ->
                 Result.success((num1 == num2).toInt())
             }

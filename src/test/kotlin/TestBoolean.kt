@@ -69,6 +69,9 @@ class TestBoolean {
             (=
                 (> 1 0)
                 (< 0 1)
+                (and 1 1)
+                (or 1 0)
+                (not 0 0)
             )
         """.trimIndent()
 
