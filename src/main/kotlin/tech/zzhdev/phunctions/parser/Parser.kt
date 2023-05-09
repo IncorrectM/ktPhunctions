@@ -336,6 +336,10 @@ class Parser(private val source: String) {
                     args.add(ConstantIntExpression(currentToken.value))
                 }
 
+                is IdentifierToken -> {
+                    args.add(IdentifierExpression(currentToken.identifier))
+                }
+
                 else -> {
                     return Result.failure(SyntaxErrorException("expecting symbol expression or constant integer"))
                 }
