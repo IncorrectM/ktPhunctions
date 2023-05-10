@@ -310,6 +310,6 @@ class TestConditional {
         }
         assert(result.isSuccess)
 
-        assertEquals(1, result.getOrNull()!!)
+        assertEquals(55, result.getOrNull()!!)
     }
 }
