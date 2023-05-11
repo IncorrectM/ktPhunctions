@@ -65,7 +65,7 @@ class Parser(private val source: String) {
         return if (opr == null) {
             val identifier = builder.toString()
             // identifiers starts with :
-            return if (identifier.startsWith(":")) {
+            return if (identifier.startsWith(":") || GlobalEnvironment.isBuiltinVar(identifier)) {
                 val id = IdentifierToken(identifier.removePrefix(":"))
                 lastToken = id
                 Result.success(id)
@@ -150,9 +150,22 @@ class Parser(private val source: String) {
                 })
                 return Result.success(symbolExpression)
             }
+
+            OperatorTokens.IF -> {
+                symbolExpression.appendChild(parseIfExpression().getOrElse {
+                    return Result.failure(it)
+                })
+                return Result.success(symbolExpression)
+            }
         }
 
-        symbolExpression.appendChild(OperatorExpression(oprToken.symbol))
+        symbolExpression.appendChild(
+            if (BinaryOperatorExpression.isBinaryOperator(oprToken.symbol)) {
+                BinaryOperatorExpression(oprToken.symbol)
+            } else {
+                UnaryOperatorExpression(oprToken.symbol)
+            }
+        )
 
         // parse remaining children
         tokenResult = nextToken()
@@ -323,8 +336,12 @@ class Parser(private val source: String) {
                     args.add(ConstantIntExpression(currentToken.value))
                 }
 
+                is IdentifierToken -> {
+                    args.add(IdentifierExpression(currentToken.identifier))
+                }
+
                 else -> {
-                    return Result.failure(SyntaxErrorException("expected symbol expression or constant integer"))
+                    return Result.failure(SyntaxErrorException("expecting symbol expression or constant integer"))
                 }
             }
 
@@ -337,5 +354,49 @@ class Parser(private val source: String) {
             id.identifier,
             args = args,
         ))
+    }
+
+    private fun parseIfExpression(): Result<IfExpression> {
+        val expression = parseValueExpressionList().getOrElse {
+            return Result.failure(it)
+        }
+        if (expression.size < 3) {
+            return Result.failure(SyntaxErrorException("expecting three expressions"))
+        }
+        return Result.success(IfExpression(
+            condition = expression[0],
+            trueBranch = expression[1],
+            falseBranch = expression[2]
+        ))
+    }
+
+    private fun parseValueExpressionList(): Result<List<Expression>> {
+        var tokenResult = nextToken()
+        val expressions = arrayListOf<Expression>()
+        while (tokenResult.isSuccess && tokenResult.getOrNull()!! != OperatorTokens.RIGHT_PARENT && hasNext()) {
+            when (val token = tokenResult.getOrNull()!!) {
+                is IntToken -> {
+                    expressions.add(ConstantIntExpression(token.value))
+                }
+
+                OperatorTokens.LEFT_PARENT -> {
+                    val result = parseSymbolExpression()
+                    if (result.isFailure) {
+                        return  Result.failure(result.exceptionOrNull()!!)
+                    }
+                    expressions.add(result.getOrNull()!!)
+                }
+
+                is IdentifierToken -> {
+                    expressions.add(IdentifierExpression(token.identifier))
+                }
+
+                else -> {
+                    return Result.failure(SyntaxErrorException("expecting an expression, got $token"))
+                }
+            }
+            tokenResult = nextToken()
+        }
+        return Result.success(expressions)
     }
 }

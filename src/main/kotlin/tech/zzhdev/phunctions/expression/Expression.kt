@@ -4,23 +4,31 @@ import tech.zzhdev.phunctions.exception.EvaluationErrorException
 import java.util.*
 
 typealias EvaluationResult = Int
-typealias OperationEvaluator = (num1: Int, num2: Int) -> Result<EvaluationResult>
+typealias UnaryOperationEvaluator = (num: Int) -> Result<EvaluationResult>
+typealias BinaryOperationEvaluator = (num1: Int, num2: Int) -> Result<EvaluationResult>
+
+fun Boolean.toInt() = if (this) 1 else 0
 
 interface Expression {
     fun eval(): Result<EvaluationResult>
 }
 
-data class OperatorExpression(
-    val symbol: String
-    ): Expression {
+abstract class OperatorExpression<T>: Expression {
+    abstract val symbol: String
+    abstract val evaluator: T?
+}
 
-    val evaluator: OperationEvaluator? = operationEvaluators[symbol]
+data class BinaryOperatorExpression(
+    override val symbol: String
+    ): OperatorExpression<BinaryOperationEvaluator>() {
+
+    override val evaluator: BinaryOperationEvaluator? = operationEvaluators[symbol]
     override fun eval(): Result<EvaluationResult> {
         return Result.failure(EvaluationErrorException("operators can not be evaluated"))
     }
 
     companion object {
-        private val operationEvaluators = HashMap<String, OperationEvaluator>()
+        private val operationEvaluators = HashMap<String, BinaryOperationEvaluator>()
         init {
             operationEvaluators["+"] = { num1: Int, num2: Int ->
                 Result.success(num1 + num2)
@@ -41,9 +49,48 @@ data class OperatorExpression(
             operationEvaluators["do"] = { num1: Int, num2: Int ->
                 Result.success(num2)
             }
+            operationEvaluators["and"] = { num1: Int, num2: Int ->
+                Result.success(num1 * num2)
+            }
+            operationEvaluators["or"] = { num1: Int, num2: Int ->
+                Result.success(num1 + num2)
+            }
+            operationEvaluators["="] = { num1: Int, num2: Int ->
+                Result.success((num1 == num2).toInt())
+            }
+            operationEvaluators[">"] = { num1: Int, num2: Int ->
+                Result.success((num1 > num2).toInt())
+            }
+            operationEvaluators["<"] = { num1: Int, num2: Int ->
+                Result.success((num1 < num2).toInt())
+            }
         }
+
+        fun isBinaryOperator(symbol: String) = operationEvaluators[symbol] != null
     }
 }
+
+data class UnaryOperatorExpression(
+    override val symbol: String
+): OperatorExpression<UnaryOperationEvaluator>() {
+
+    override val evaluator: UnaryOperationEvaluator? = operationEvaluators[symbol]
+    override fun eval(): Result<EvaluationResult> {
+        return Result.failure(EvaluationErrorException("operators can not be evaluated"))
+    }
+
+    companion object {
+        private val operationEvaluators = HashMap<String, UnaryOperationEvaluator>()
+        init {
+            operationEvaluators["not"] = { num1: Int ->
+                Result.success(if (num1 == 0) 1 else 0)
+            }
+        }
+
+        fun isUnaryOperator(symbol: String) = operationEvaluators[symbol] != null
+    }
+}
+
 data class ConstantIntExpression(val value: Int): Expression {
     override fun eval(): Result<EvaluationResult> {
         return Result.success(value)
@@ -199,6 +246,24 @@ data class IdentifierExpression(val id: String): Expression {
     }
 }
 
+data class IfExpression(
+    val condition: Expression,
+    val trueBranch: Expression,
+    val falseBranch: Expression,
+): Expression {
+    override fun eval(): Result<EvaluationResult> {
+        val conditionalResult = condition.eval().getOrElse {
+            return Result.failure(it)
+        }
+
+        return if (conditionalResult == 0) {
+            falseBranch.eval()
+        } else {
+            trueBranch.eval()
+        }
+    }
+}
+
 data class SymbolExpression(
     val children: ArrayList<Expression> = ArrayList()
 ): Expression {
@@ -231,13 +296,18 @@ data class SymbolExpression(
             is FunctionCallExpression -> {
                 return operator.eval()
             }
+
+            is IfExpression -> {
+                return operator.eval()
+            }
         }
 
-        if (operator !is OperatorExpression) {
+        if (operator !is BinaryOperatorExpression && operator !is UnaryOperatorExpression) {
             return Result.failure(EvaluationErrorException("first child is not operator"))
         }
-        if (operator.evaluator == null) {
-            return Result.failure(EvaluationErrorException("'${operator.symbol}' can not be evaluated"))
+        if (operator is BinaryOperatorExpression && operator.evaluator == null ||
+            operator is UnaryOperatorExpression && operator.evaluator == null) {
+            return Result.failure(EvaluationErrorException("'${(operator as OperatorExpression<*>).symbol}' can not be evaluated"))
         }
 
         if (children.size == 1) {
@@ -247,13 +317,23 @@ data class SymbolExpression(
         var x = children[1].eval().getOrElse {
             return Result.failure(it)
         }
-        var index = 2
-        while (index < children.size) {
-            val y = children[index++].eval().getOrElse {
-                return Result.failure(it)
+        when (operator) {
+            is BinaryOperatorExpression -> {
+                var index = 2
+                while (index < children.size) {
+                    val y = children[index++].eval().getOrElse {
+                        return Result.failure(it)
+                    }
+                    x = operator.evaluator!!(x, y).getOrElse {
+                        return Result.failure(it)
+                    }
+                }
             }
-            x = operator.evaluator!!(x, y).getOrElse {
-                return Result.failure(it)
+
+            is UnaryOperatorExpression -> {
+                x = operator.evaluator!!(x).getOrElse {
+                    return Result.failure(it)
+                }
             }
         }
 

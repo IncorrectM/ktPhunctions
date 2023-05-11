@@ -12,11 +12,20 @@ object OperatorTokens {
     val MULTIPLY = BasicToken("*")
     val DIVIDE = BasicToken("/")
 
+    val EQUAL = BasicToken("=")
+    val GREATER = BasicToken(">")
+    val LESS = BasicToken("<")
+
     val EXCLAMATION = BasicToken("!")
+
+    val AND = BasicToken("and")
+    val OR = BasicToken("or")
+    val NOT = BasicToken("not")
 
     val ARGS = BasicToken("args")
     val DEF = BasicToken("def")
     val DO = BasicToken("do")
+    val IF = BasicToken("if")
 
     private val operators = HashMap<String, BasicToken>()
     init {
@@ -28,11 +37,20 @@ object OperatorTokens {
         operators["*"] = MULTIPLY
         operators["/"] = DIVIDE
 
+        operators["="] = EQUAL
+        operators[">"] = GREATER
+        operators["<"] = LESS
+
         operators["!"] = EXCLAMATION
+
+        operators["and"] = AND
+        operators["or"] = OR
+        operators["not"] = NOT
 
         operators["args"] = ARGS
         operators["def"] = DEF
         operators["do"] = DO
+        operators["if"] = IF
     }
     private val registeredOperators
         get() = operators.values

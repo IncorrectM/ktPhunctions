@@ -77,7 +77,7 @@ class TestFunction {
                         IdentifierExpression("b")
                 )),
                 expression = SymbolExpression(arrayOf(
-                    OperatorExpression("+"),
+                    BinaryOperatorExpression("+"),
                     IdentifierExpression("a"),
                     IdentifierExpression("b")
                 )),
@@ -119,9 +119,9 @@ class TestFunction {
                 args = arrayListOf(IdentifierExpression("a"))
             ),
             expression = SymbolExpression(arrayOf(
-                OperatorExpression("+"),
+                BinaryOperatorExpression("+"),
                 SymbolExpression(arrayOf(
-                    OperatorExpression("+"),
+                    BinaryOperatorExpression("+"),
                     IdentifierExpression("a"),
                     IdentifierExpression("a"),
                     IdentifierExpression("a"),
@@ -140,7 +140,7 @@ class TestFunction {
                 args = arrayListOf(IdentifierExpression("a"))
             ),
             expression = SymbolExpression(arrayOf(
-                OperatorExpression("+"),
+                BinaryOperatorExpression("+"),
                 FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(10))),
                 IdentifierExpression("a"),
             )),
@@ -157,7 +157,7 @@ class TestFunction {
                 args = arrayListOf(IdentifierExpression("a"))
             ),
             expression = SymbolExpression(arrayOf(
-                OperatorExpression("+"),
+                BinaryOperatorExpression("+"),
                 FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(100))),
                 FunctionCallExpression("b", arrayListOf(ConstantIntExpression(555))),
                 FunctionCallExpression("aa", arrayListOf(ConstantIntExpression(25))),
@@ -188,6 +188,35 @@ class TestFunction {
         assert(parser.hasNext())
 
         val expression = parser.parse()
+        assert(expression.isSuccess)
+
+        val exprResult = expression.getOrNull()!!
+        assertEquals(1114, exprResult.eval().getOrElse {
+            assert(false)
+        })
+    }
+
+    @Test
+    fun testCallingFunctionWithArgs() {
+        val source = """
+            (do
+                (def
+                    :addTwo
+                    (args :a :b)
+                    (+ :a :b)
+                )
+                (def :c 999)
+                (+ (:addTwo 1 (:addTwo 1 (:addTwo 10 (:addTwo 100 (:addTwo :c 1))))) (:addTwo 1 1))
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expression = parser.parse()
+        expression.onFailure {
+            println(it)
+        }
         assert(expression.isSuccess)
 
         val exprResult = expression.getOrNull()!!
