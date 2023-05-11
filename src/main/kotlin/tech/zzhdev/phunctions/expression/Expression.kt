@@ -6,6 +6,7 @@ import java.util.*
 typealias EvaluationResult = Int
 typealias UnaryOperationEvaluator = (num: Int) -> Result<EvaluationResult>
 typealias BinaryOperationEvaluator = (num1: Int, num2: Int) -> Result<EvaluationResult>
+typealias UniversalOperationEvaluator = (args: Array<Int>) -> Result<EvaluationResult>
 
 fun Boolean.toInt() = if (this) 1 else 0
 
@@ -16,6 +17,9 @@ interface Expression {
 abstract class OperatorExpression<T>: Expression {
     abstract val symbol: String
     abstract val evaluator: T?
+    override fun eval(): Result<EvaluationResult> {
+        return Result.failure(EvaluationErrorException("operators can not be evaluated"))
+    }
 }
 
 data class BinaryOperatorExpression(
@@ -23,9 +27,6 @@ data class BinaryOperatorExpression(
     ): OperatorExpression<BinaryOperationEvaluator>() {
 
     override val evaluator: BinaryOperationEvaluator? = operationEvaluators[symbol]
-    override fun eval(): Result<EvaluationResult> {
-        return Result.failure(EvaluationErrorException("operators can not be evaluated"))
-    }
 
     companion object {
         private val operationEvaluators = HashMap<String, BinaryOperationEvaluator>()
@@ -75,9 +76,6 @@ data class UnaryOperatorExpression(
 ): OperatorExpression<UnaryOperationEvaluator>() {
 
     override val evaluator: UnaryOperationEvaluator? = operationEvaluators[symbol]
-    override fun eval(): Result<EvaluationResult> {
-        return Result.failure(EvaluationErrorException("operators can not be evaluated"))
-    }
 
     companion object {
         private val operationEvaluators = HashMap<String, UnaryOperationEvaluator>()
@@ -88,6 +86,35 @@ data class UnaryOperatorExpression(
         }
 
         fun isUnaryOperator(symbol: String) = operationEvaluators[symbol] != null
+    }
+}
+
+data class UniversalOperatorExpression(
+    override val symbol: String
+): OperatorExpression<UniversalOperationEvaluator>() {
+    override val evaluator: UniversalOperationEvaluator?
+        get() = operationEvaluators[symbol]
+
+    companion object {
+        private val operationEvaluators = HashMap<String, UniversalOperationEvaluator>()
+        init {
+            operationEvaluators["display"] = { args: Array<Int> ->
+                if (args.isEmpty()) {
+                    println()
+                    Result.success(0)
+                }
+
+                args.forEachIndexed { _, i ->
+                    print("$i ")
+                }
+                println()
+
+                val last = args.last()
+                Result.success(args.last())
+            }
+        }
+
+        fun isUniversalOperator(symbol: String) = operationEvaluators[symbol] != null
     }
 }
 
@@ -302,12 +329,11 @@ data class SymbolExpression(
             }
         }
 
-        if (operator !is BinaryOperatorExpression && operator !is UnaryOperatorExpression) {
+        if (operator !is OperatorExpression<*>) {
             return Result.failure(EvaluationErrorException("first child is not operator"))
         }
-        if (operator is BinaryOperatorExpression && operator.evaluator == null ||
-            operator is UnaryOperatorExpression && operator.evaluator == null) {
-            return Result.failure(EvaluationErrorException("'${(operator as OperatorExpression<*>).symbol}' can not be evaluated"))
+        if (operator.evaluator == null) {
+            return Result.failure(EvaluationErrorException("'${operator.symbol}' can not be evaluated"))
         }
 
         if (children.size == 1) {
@@ -318,6 +344,12 @@ data class SymbolExpression(
             return Result.failure(it)
         }
         when (operator) {
+            is UnaryOperatorExpression -> {
+                x = operator.evaluator!!(x).getOrElse {
+                    return Result.failure(it)
+                }
+            }
+
             is BinaryOperatorExpression -> {
                 var index = 2
                 while (index < children.size) {
@@ -330,8 +362,14 @@ data class SymbolExpression(
                 }
             }
 
-            is UnaryOperatorExpression -> {
-                x = operator.evaluator!!(x).getOrElse {
+            is UniversalOperatorExpression -> {
+                val args = arrayListOf(x)
+                children
+                    .filterIndexed { index, expression -> index >= 2 }
+                    .forEach {
+                        args.add(it.eval().getOrElse { return Result.failure(it) })
+                    }
+                x = operator.evaluator!!(args.toTypedArray()).getOrElse {
                     return Result.failure(it)
                 }
             }

@@ -353,4 +353,26 @@ class TestBasicParser {
         assert(expression.eval().isFailure)
         assertEquals(EvaluationErrorException("b is not defined"), expression.eval().exceptionOrNull()!!)
     }
+
+    @Test
+    fun testDisplayEvaluation() {
+        val source = """
+            (do
+                (display 1 1 1 1 1) 
+                (def :b 2)
+                (display :b :b :b :b :b (* 2 :b)) 
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expressionResult = parser.parse()
+        assert(expressionResult.isSuccess)
+
+        val expression = expressionResult.getOrNull()!!
+        val evaluationResult = expression.eval()
+        assert(evaluationResult.isSuccess)
+        assertEquals(4, evaluationResult.getOrNull()!!)
+    }
 }

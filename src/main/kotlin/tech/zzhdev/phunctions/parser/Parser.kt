@@ -162,37 +162,23 @@ class Parser(private val source: String) {
         symbolExpression.appendChild(
             if (BinaryOperatorExpression.isBinaryOperator(oprToken.symbol)) {
                 BinaryOperatorExpression(oprToken.symbol)
-            } else {
+            } else if (UnaryOperatorExpression.isUnaryOperator(oprToken.symbol)) {
                 UnaryOperatorExpression(oprToken.symbol)
+            } else {
+                UniversalOperatorExpression(oprToken.symbol)
             }
         )
 
         // parse remaining children
-        tokenResult = nextToken()
-        while (tokenResult.isSuccess && tokenResult.getOrNull()!! != OperatorTokens.RIGHT_PARENT && hasNext()) {
-            when (val token = tokenResult.getOrNull()!!) {
-                is IntToken -> {
-                    symbolExpression.appendChild(ConstantIntExpression(token.value))
-                }
-
-                OperatorTokens.LEFT_PARENT -> {
-                    val result = parseSymbolExpression()
-                    if (result.isFailure) {
-                        return  Result.failure(result.exceptionOrNull()!!)
-                    }
-                    symbolExpression.appendChild(result.getOrNull()!!)
-                }
-
-                is IdentifierToken -> {
-                    symbolExpression.appendChild(IdentifierExpression(token.identifier))
-                }
-
-                else -> {
-                    return Result.failure(SyntaxErrorException("expecting an expression, got $token"))
+        parseValueExpressionList()
+            .onSuccess {
+                it.forEach {
+                    symbolExpression.appendChild(it)
                 }
             }
-            tokenResult = nextToken()
-        }
+            .onFailure {
+                return Result.failure(it)
+            }
 
         if (lastToken != OperatorTokens.RIGHT_PARENT) {
             return Result.failure(SyntaxErrorException("expression is not closed"))
