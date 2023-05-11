@@ -16,6 +16,7 @@ dependencies {
     implementation("org.jline:jline:3.23.0")
 
     testImplementation(kotlin("test"))
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 tasks {

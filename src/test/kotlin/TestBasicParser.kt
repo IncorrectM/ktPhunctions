@@ -1,7 +1,7 @@
 import org.junit.jupiter.api.Test
+import tech.zzhdev.phunctions.exception.EvaluationErrorException
 import tech.zzhdev.phunctions.expression.*
 import tech.zzhdev.phunctions.parser.*
-import kotlin.test.AfterTest
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
@@ -81,6 +81,36 @@ class TestBasicParser {
     }
 
     @Test
+    fun testParsingExclamation() {
+        val source = """
+            (def
+                :a
+                1
+                !
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val tokens = ArrayList<Token>()
+        while (parser.hasNext()) {
+            val result = parser.nextToken()
+            assert(result.isSuccess)
+            tokens.add(result.getOrNull()!!)
+        }
+
+        assertContentEquals(arrayOf(
+            OperatorTokens.LEFT_PARENT,
+            OperatorTokens.DEF,
+            IdentifierToken("a"),
+            IntToken(1),
+            OperatorTokens.EXCLAMATION,
+            OperatorTokens.RIGHT_PARENT,
+        ), tokens.toArray())
+    }
+
+    @Test
     fun testParsingDoAndDef() {
         val source = """
             ( do
@@ -146,14 +176,14 @@ class TestBasicParser {
 
         val expression = expressionResult.getOrNull()!!
         val expected = SymbolExpression(arrayOf(
-            OperatorExpression("*"),
+            BinaryOperatorExpression("*"),
             SymbolExpression(arrayOf(
-                OperatorExpression("+"),
+                BinaryOperatorExpression("+"),
                 ConstantIntExpression(1),
                 ConstantIntExpression(1),
             )),
             SymbolExpression(arrayOf(
-                OperatorExpression("*"),
+                BinaryOperatorExpression("*"),
                 ConstantIntExpression(2),
                 ConstantIntExpression(2),
             )),
@@ -186,17 +216,17 @@ class TestBasicParser {
 
         val expression = expressionResult.getOrNull()!!
         val expected = SymbolExpression(arrayOf(
-            OperatorExpression("do"),
+            BinaryOperatorExpression("do"),
             SymbolExpression(arrayOf(
-                VariableDefineExpression(arrayListOf(
+                VariableDefinitionExpression(arrayListOf(
                     IdentifierExpression("kto"),
                     ConstantIntExpression(100),
                 )),
             )),
             SymbolExpression(arrayOf(
-                OperatorExpression("*"),
+                BinaryOperatorExpression("*"),
                 SymbolExpression(arrayOf(
-                    OperatorExpression("+"),
+                    BinaryOperatorExpression("+"),
                     ConstantIntExpression(1),
                     ConstantIntExpression(1),
                 )),
@@ -280,5 +310,69 @@ class TestBasicParser {
         val expression = expressionResult.getOrNull()!!
         assert(expression.eval().isSuccess)
         assertEquals(400, expression.eval().getOrNull()!!)
+    }
+
+    @Test
+    fun testInstantEvaluation() {
+        val source = """
+            (def 
+                :a 
+                (* 2 2)
+                !
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expressionResult = parser.parse()
+        assert(expressionResult.isSuccess)
+
+        val expression = expressionResult.getOrNull()!!
+        assert(expression.eval().isSuccess)
+        assertEquals(4, expression.eval().getOrNull()!!)
+    }
+
+    @Test
+    fun testInstantEvaluationFailed() {
+        val source = """
+            (def 
+                :a 
+                (* 2 :b)
+                !
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expressionResult = parser.parse()
+        assert(expressionResult.isSuccess)
+
+        val expression = expressionResult.getOrNull()!!
+        assert(expression.eval().isFailure)
+        assertEquals(EvaluationErrorException("b is not defined"), expression.eval().exceptionOrNull()!!)
+    }
+
+    @Test
+    fun testDisplayEvaluation() {
+        val source = """
+            (do
+                (display 1 1 1 1 1) 
+                (def :b 2)
+                (display :b :b :b :b :b (* 2 :b)) 
+            )
+        """.trimIndent()
+
+        val parser = Parser(source)
+        assert(parser.hasNext())
+
+        val expressionResult = parser.parse()
+        assert(expressionResult.isSuccess)
+
+        val expression = expressionResult.getOrNull()!!
+        val evaluationResult = expression.eval()
+        assert(evaluationResult.isSuccess)
+        assertEquals(4, evaluationResult.getOrNull()!!)
     }
 }

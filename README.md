@@ -76,9 +76,60 @@ Or a symbol expression:
 ```
 The value of variables will not be evaluated unless they are accessed.
 
-TODO: force phunctions to evaluate as soon as declared.
+Another version that doesn't need `:` to declare identifier can be seen in the branch `feature-var-no-prefix`.
+    Be ware that `feature-var-no-prefix` is currently under estimation.
 
-Variables can be rebind. This following expression is evaluated to 3.
+##### Lazy Evaluation
+By default, variables' value is evaluated only when accessed. 
+
+Which means the example below is valid.
+```Phunctions
+(do
+    (def :a (+ 1 :b))
+    (def :b 1)
+    (+ 0 :a)
+)
+```
+This example returns `2`.
+
+Under this condition, `(def :a (+ 1 :b))` and `(def :b 1)` simply returns `0`.
+
+#### Instant Evaluation
+
+You can explicitly ask Phunctions to evaluate the value of variables as soon as it is defined using operator `!`.
+
+Here's an example.
+
+```Phunctions
+(def :a (+ 1 1) !)
+```
+
+This example returns `2`(the result of (+ 1 1)).
+
+To show the different between instant evaluation and lazy evaluation, here is one more example.
+
+```Phunctions
+(def :a (+ 1 :b) !)
+```
+
+This example will throw an EvaluationErrorException which says `b is no defined` since variable `b` is not defined 
+    before `a`.
+
+```Phunctions
+(do
+    (def :b 0)
+    (def :a (+ 1 :b) !)
+    (+ 0 :a)
+    (def :b 99)
+    (+ 0 :a)
+)
+```
+
+In this example, two `(+ 0 :a)` returns exactly the same `1` since the value of `a` is evaluated as `a` as soon as it 
+    is defined.
+
+#### Re-binding
+Variables can be re-bond. This following expression is evaluated to 3.
 ```Phunctions
 (do
     (def :a (+ 1 1))
@@ -87,8 +138,37 @@ Variables can be rebind. This following expression is evaluated to 3.
 )
 ```
 
-TODO: restricted bind - a variable that can not be rebind
+TODO: restricted bind - a variable that can not be re-bond
+
+#### Boolean Expression
+
+In Phunctions, 0's are treated as false, other integers are treated as true.
+
+For convenience, Phunctions provides two builtin variable representing boolean values:
+    `True` and `False`. `True` equals constant `1` and `False` equals constant `0`.
+
+They can be accessed like this:
+```Phunctions
+(+ :True 1)
+```
+
+Since they are special builtin variables, it's possible to access them without ':'.
+```Phunctions
+(+ True 1)
+```
 
 #### Function Define Expression
 
-TODO: to be done
+```Phunctions
+(do
+    (def
+        :addTwo
+        (args :a :b)
+        (+ :a :b)
+    )
+    (+ (:addTwo 1 (:addTwo 1 (:addTwo 10 (:addTwo 100 (:addTwo 999 1))))) (:addTwo 1 1))
+)
+```
+
+This example defines a function that adds two integers and calls it.
+    This example returns 1114
